@@ -11,15 +11,15 @@ import numpy
 
 
 class algortithem:
-    def __init__(self, target, tar_size, pop_size, inputType, selection, max_iter, number_of_clustures,
+    def __init__(self, target, tar_size, n, inputType, selection, max_iter, number_of_clustures,
                  cluster_propabilities):
-        self.inputParameters = list(range(pop_size))
-        self.buffer = list(range(pop_size))
-        self.fitness_array = numpy.zeros((pop_size))
+        self.inputParameters = list(range(n))
+        self.buffer = list(range(n))
+        self.fitness_array = numpy.zeros((n))
         self.target = target
         self.target_size = tar_size
-        self.numberOfInputs = pop_size
-        # self.pop_mean = 0
+        self.n = n
+
         self.iteration = 0  # current iteration that went through the algorithm
         self.inputType = inputType
 
@@ -50,6 +50,10 @@ class algortithem:
     def sorting(self, population):
         # todo if you want to use it ,create a <= operator in input type
         return sorted(population, reverse=False)
+
+    def initInput(self):
+        for new_input in range(self.n):
+
 
     def eStep(self):
         # todo implement the e step on specific
