@@ -38,7 +38,7 @@ class algortithem:
         # Pie in the equations
         self.cluster_porbabilities = cluster_propabilities
 
-        # number of clustures
+        # number of clusters
         self.k = number_of_clustures
 
         self.distributions = self.createSigmasAndMius()

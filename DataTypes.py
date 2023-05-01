@@ -14,7 +14,6 @@ class distributions:
 class pointDataType:
 
     def __init__(self, numberOfClusters):
-
         # create the input for the algorithm ,can be change in the future
 
         self.object = random.gauss(mu=MAXMU, sigma=MAXSIGMA)
@@ -26,6 +25,9 @@ class pointDataType:
     def create_object(self, target=None, options=None):
         #  if we want to change how we create an object in the future
         self.object = target
+
+    def createNewPropabilies(self, prob):
+        self.propabilies = prob
 
 
 # class for a vector of input, uses target as an object
