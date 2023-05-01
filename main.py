@@ -1,6 +1,7 @@
 import math
+import random
 import time
-
+from DataTypes import distributions
 import numpy as np
 
 from Selection_methods import selection_methods
@@ -8,65 +9,45 @@ from settings import GA_MAXITER
 
 import numpy
 
-# create reandom sigma and miu values for first iteration!
-def createSigmasAndMius():
-    # todo check that they are fully random , as some values may be identical
-    pass
-
 
 class algortithem:
-    def __init__(self, target, tar_size, pop_size, problem_spec, fitnesstype, selection, max_iter, number_of_clustures,
+    def __init__(self, target, tar_size, pop_size, inputType, selection, max_iter, number_of_clustures,
                  cluster_propabilities):
         self.inputParameters = list(range(pop_size))
         self.buffer = list(range(pop_size))
         self.fitness_array = numpy.zeros((pop_size))
         self.target = target
         self.target_size = tar_size
-        self.pop_size = pop_size
-        self.pop_mean = 0
-        self.iteration = 0  # current iteration that went through the algorithem
-        self.prob_spec = problem_spec
-        # self.file = open(r"pres.txt", "w+")
-        # self.file.close()
-        self.fitnesstype = fitnesstype
+        self.numberOfInputs = pop_size
+        # self.pop_mean = 0
+        self.iteration = 0  # current iteration that went through the algorithm
+        self.inputType = inputType
+
         self.selection_methods = selection_methods()
         self.selection = selection
+
         self.tick = 0
         self.sol_time = 0
         self.max_iter = max_iter
-        self.solution = problem_spec()
+        self.solution = inputType()
         self.output = []
         self.output2 = []
         self.iter = []
-        self.solution2 = self.prob_spec()
+        self.solution2 = self.inputType()
+
         # Pie in the equations
         self.cluster_porbabilities = cluster_propabilities
+
         # number of clustures
         self.k = number_of_clustures
-        # sigmas/E
-        self.sigmas=[]
-        # miu's/variance
-        self.muiArray=[]
-        self.init_inputAndCreateSigmas()
-    def init_inputAndCreateSigmas(self):
-        # todo: population is the input array , should not be random , have to find data set to test upon ,or creat a random one
-        # for i in range(self.pop_size):
-        #     citizen = self.prob_spec()
-        #     citizen.create_object(self.target_size, self.target)
-        #     self.inputParameters[i] = self.buffer[i] = citizen
 
-        createSigmasAndMius()
+        self.distributions = self.createSigmasAndMius()
 
-    def calc_fitness(self):
-        mean = 0
-        for i in range(self.pop_size):
-            # todo create new function , not necessary , might not use this one
-            self.inputParameters[i].calculate_fittness(self.target, self.target_size, self.fitnesstype)
-            mean += self.inputParameters[i].fitness
-            # calculate diversity for each individual
-        self.pop_mean = mean / self.pop_size
+    # create random sigma and miu values for first iteration!
+    def createSigmasAndMius(self):
+        return [distributions() for i in range(self.k)]
 
-    def sort_by_fitness(self, population):
+    def sorting(self, population):
         # todo if you want to use it ,create a <= operator in input type
         return sorted(population, reverse=False)
 
@@ -92,7 +73,6 @@ class algortithem:
     def algo(self, i):
         self.eStep()
         self.mstep()
-
 
     def stopage(self, i):
         return False
