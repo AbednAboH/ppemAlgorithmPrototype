@@ -21,7 +21,7 @@ import numpy
 """
 class algortithem:
 
-    def __init__(self, n, inputType, max_iter, number_of_clustures):
+    def __init__(self, n, inputType, max_iter, number_of_clustures,input=None):
         self.inputParameters = list(range(n))
         self.buffer = list(range(n))
         self.fitness_array = numpy.zeros(n)
@@ -45,7 +45,7 @@ class algortithem:
 
         self.distributions = []
 
-        self.n_inputs = []
+        self.n_inputs = [] if input==None else input
         self.initInput()
 
     # create random sigma and miu values for first iteration!
@@ -61,16 +61,20 @@ class algortithem:
 
     def initAllAlgoParameters(self):
         self.createSigmasAndMius()
-        self.initInput()
+        self.initInput() if self.n_inputs ==[] else None
 
     def eStep(self):
+        for input in self.n_inputs:
+            for distribution in self.distributions:
+                pass
+            #todo do the calculations and then do the m step calculations.
 
-        # todo implement the e step on specific
-        pass
 
     def mstep(self):
         # todo implement the m step of the algorithm
         pass
+    def calculate_Pie(self,input):
+
 
     def handle_initial_time(self):
         self.tick = time.time()
@@ -92,7 +96,6 @@ class algortithem:
 
     def solve(self):
         self.handle_initial_time()
-        self.init_inputAndCreateSigmas()
         for i in range(self.max_iter):
 
             self.iteration += 1
