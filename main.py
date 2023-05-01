@@ -9,22 +9,27 @@ from settings import GA_MAXITER
 
 import numpy
 
+"""
+        This function greets a person with their name and age.
 
+        @param n: number of parameters.
+        @param inputType: type of input data.
+        @param max_iter: number of iterations
+        @param number_of_clustures :number of clusters to be associated with the data points 
+        
+        @return: A string greeting the person.
+"""
 class algortithem:
-    def __init__(self, target, tar_size, n, inputType, selection, max_iter, number_of_clustures,
-                 cluster_propabilities):
+
+    def __init__(self, n, inputType, max_iter, number_of_clustures):
         self.inputParameters = list(range(n))
         self.buffer = list(range(n))
-        self.fitness_array = numpy.zeros((n))
-        self.target = target
-        self.target_size = tar_size
+        self.fitness_array = numpy.zeros(n)
+
         self.n = n
 
         self.iteration = 0  # current iteration that went through the algorithm
         self.inputType = inputType
-
-        self.selection_methods = selection_methods()
-        self.selection = selection
 
         self.tick = 0
         self.sol_time = 0
@@ -35,27 +40,31 @@ class algortithem:
         self.iter = []
         self.solution2 = self.inputType()
 
-        # Pie in the equations
-        self.cluster_porbabilities = cluster_propabilities
-
         # number of clusters
         self.k = number_of_clustures
 
-        self.distributions = self.createSigmasAndMius()
+        self.distributions = []
+
+        self.n_inputs = []
+        self.initInput()
 
     # create random sigma and miu values for first iteration!
     def createSigmasAndMius(self):
-        return [distributions() for i in range(self.k)]
+        self.distributions = [distributions() for i in range(self.k)]
 
     def sorting(self, population):
         # todo if you want to use it ,create a <= operator in input type
         return sorted(population, reverse=False)
 
     def initInput(self):
-        for new_input in range(self.n):
+        self.n_inputs = [self.inputType() for i in range(self.k)]
 
+    def initAllAlgoParameters(self):
+        self.createSigmasAndMius()
+        self.initInput()
 
     def eStep(self):
+
         # todo implement the e step on specific
         pass
 

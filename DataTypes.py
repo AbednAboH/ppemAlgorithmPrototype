@@ -10,6 +10,11 @@ class distributions:
         self.mu = random.randint(0, MAXMU)
 
 
+class PiCreation:
+    def normalDistribution(self, numberOfClusters):
+        return [1.0 / numberOfClusters for i in range(numberOfClusters)]
+
+
 # one dimensional input:
 class pointDataType:
 
@@ -20,7 +25,7 @@ class pointDataType:
         # Working with kind of Random Starts start paradigm
 
         # Array of pi-s
-        self.propabilies = [1.0 / numberOfClusters for i in range(numberOfClusters)]
+        self.propabilies = PiCreation.normalDistribution(numberOfClusters)
 
     def create_object(self, target=None, options=None):
         #  if we want to change how we create an object in the future
