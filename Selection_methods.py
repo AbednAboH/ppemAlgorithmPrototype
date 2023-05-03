@@ -1,65 +1,40 @@
-from math import sqrt
-import numpy
-from random import randint, random, sample
-from settings import RAND, SUS, RWS, TOUR
+import numpy as np
 
+# define the EM algorithm
+def EM_algorithm(data, num_clusters, num_iterations):
+    # randomly initialize the means and standard deviations for each cluster
+    means = np.random.uniform(low=min(data), high=max(data), size=num_clusters)
+    std_devs = np.random.uniform(low=0, high=1, size=num_clusters)
+    weights = np.ones(num_clusters) / num_clusters
 
-class selection_methods:
-    # static propabilies list
+    for i in range(num_iterations):
+        # E-step: compute the posterior probability of each data point belonging to each cluster
+        posteriors = np.zeros((len(data), num_clusters))
+        for j in range(num_clusters):
+            posteriors[:, j] = weights[j] * normal_distribution(data, means[j], std_devs[j])
+        posteriors /= posteriors.sum(axis=1, keepdims=True)
 
-    ranks = []
+        # M-step: update the means, standard deviations, and weights for each cluster
+        means = np.sum(posteriors * data.reshape(-1, 1), axis=0) / np.sum(posteriors, axis=0)
+        std_devs = np.sqrt(np.sum(posteriors * (data.reshape(-1, 1) - means) ** 2, axis=0) / np.sum(posteriors, axis=0))
+        weights = np.sum(posteriors, axis=0) / len(data)
 
-    def __init__(self):
-        self.method = {RAND: self.random_selection, SUS: self.SUS, RWS: self.RWS,
-                       TOUR: self.tournement, "tour2": self.tournement2}
+    return means, std_devs, weights
 
-    def random_selection(self, population, fitness_array, k=10):
-        # select random places from half the population
-        popsize = len(population)
-        i1 = randint(0, int(popsize * 0.1))
-        i2 = randint(0, int(popsize * 0.1))
-        return population[i1], population[i2]
+# define the normal distribution function
+def normal_distribution(x, mean, std_dev):
+    return 1 / (std_dev * np.sqrt(2 * np.pi)) * np.exp(-(x - mean) ** 2 / (2 * std_dev ** 2))
 
-    def SUS(self, population, fitness_array, k=10):
-        range_of_choices = len(fitness_array)
-        chosen = numpy.random.choice(range_of_choices, p=fitness_array)
-        chosen2 = (chosen + len(fitness_array) // 2) % len(fitness_array)
-        return population[chosen], population[chosen2]
+# generate some random data
+data = np.concatenate((np.random.normal(loc=5, scale=1, size=100), np.random.normal(loc=10, scale=2, size=100)))
 
-    def RWS(self, population, fitness_array, k=10):
-        # check the +1 !
-        range_of_choices = len(fitness_array)
-        # roll the rullette
-        chosen = numpy.random.choice(range_of_choices, p=fitness_array)
-        chosen2 = numpy.random.choice(range_of_choices, p=fitness_array)
-        return population[chosen], population[chosen2]
+# run the EM algorithm
+num_clusters = 2
+num_iterations = 100
+means, std_devs, weights = EM_algorithm(data, num_clusters, num_iterations)
 
-    def tournement(self, population, fitness_array, k=15):
-        # get samples from population
-        k1 = min(k, len(population))
-        participants1 = sample(population, k1)
-        participants2 = sample(population, k1)
-        # return minimum from 2 samples
-        return min(participants1), min(participants2)
+# print the results
+print("Means:", means)
+print("Standard deviations:", std_devs)
+print("Weights:", weights)
 
-    def tournement2(self, population, fitness_array, k=100):
-        sets = []
-        for i in range(k):
-            p1, p2 = self.tournement(population, fitness_array, k=15)
-            sets.append(p1)
-            sets.append(p2)
-        return sets
-
-    def spin_the_rulette(self, population, mean):
-        # spin the wheel:
-        fitness_array = numpy.array([1 / linear_scale((citizen.fitness, 0.5, 1)) for citizen in population])
-        fitness_sum = fitness_array.sum()
-        self.ranks = [1 / linear_scale((citizen.fitness, 0.5, 1)) / fitness_sum for citizen in population]
-
-
-def linear_scale(x):
-    return x[0] * x[1] + x[2]
-
-
-# linear_scale = lambda x:x[0]*x[1]+x[2]
-e_scale = lambda x: sqrt(x)

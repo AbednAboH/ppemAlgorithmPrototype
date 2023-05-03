@@ -8,20 +8,27 @@ from settings import MAXSIGMA, MAXMU
 
 # todo change this in the future
 class distributions:
-    def __init__(self,data,numberOfClusters):
+    def __init__(self, data, numberOfClusters):
         self.sigma = np.random.uniform(low=min(data), high=max(data), size=numberOfClusters)
         self.mu = np.random.uniform(low=0, high=1, size=numberOfClusters)
-    def normalDistribution(self,data,numberOfClusters):
-        self.sigma = np.random.uniform(low=min(data), high=max(data), size=numberOfClusters)
-        self.mu = np.random.uniform(low=0, high=1, size=numberOfClusters)
+        # initial weights of each cluster ..
+        self.weights = np.ones(numberOfClusters) / numberOfClusters
 
+    def normalDistribution(self, data, numberOfClusters):
+        self.sigma = np.random.uniform(low=min(data), high=max(data), size=numberOfClusters)
+        self.mu = np.random.uniform(low=0, high=1, size=numberOfClusters)
+        self.weights = np.ones(numberOfClusters) / numberOfClusters
+
+    def __str__(self):
+        string = ""
+        for i, j in (self.sigma, self.mu):
+            string += "Sigma: " + i + " ,Mu value: " + j+"\n"
+        return string
 # weights /initial pi value
 class PiCreation:
-    def normalDistribution(self, numberOfClusters):
+    def normalDistributionWeights(self, numberOfClusters):
         return np.ones(numberOfClusters) / numberOfClusters
 
-class oneDimentional:
-    
 
 # one dimensional input:
 class pointDataType:
@@ -29,11 +36,11 @@ class pointDataType:
     def __init__(self, numberOfClusters):
         # create the input for the algorithm ,can be change in the future
 
-        self.object = random.gauss(mu=MAXMU, sigma=MAXSIGMA)
+        self.object = None
         # Working with kind of Random Starts start paradigm
 
         # Array of pi-s
-        self.propabilies = PiCreation().normalDistribution(numberOfClusters)
+        self.posteriorProbability = PiCreation().normalDistributionWeights(numberOfClusters)
 
     def create_object(self, target=None, options=None):
         #  if we want to change how we create an object in the future
