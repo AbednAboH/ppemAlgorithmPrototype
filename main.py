@@ -16,7 +16,7 @@ import numpy
         @param inputType: type of input data.
         @param max_iter: number of iterations
         @param number_of_clustures :number of clusters to be associated with the data points 
-        
+        @param input : input of the PPEM algorithm when we use server client model 
         @return: A string greeting the person.
 """
 class algortithem:
@@ -57,7 +57,7 @@ class algortithem:
         return sorted(population, reverse=False)
 
     def initInput(self):
-        self.n_inputs = [self.inputType() for i in range(self.k)]
+        self.n_inputs = np.concatenate((np.random.normal(loc=5, scale=1, size=100), np.random.normal(loc=10, scale=2, size=100)))
 
     def initAllAlgoParameters(self):
         self.createSigmasAndMius()
@@ -74,7 +74,7 @@ class algortithem:
         # todo implement the m step of the algorithm
         pass
     def calculate_Pie(self,input):
-
+        pass
 
     def handle_initial_time(self):
         self.tick = time.time()
