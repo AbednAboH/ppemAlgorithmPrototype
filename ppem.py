@@ -1,9 +1,10 @@
+import imageio as imageio
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 
 
-def em_algorithm(data, num_clusters, max_iter=200, eps=1e-4):
+def em_algorithm(data, num_clusters, max_iter=1000, eps=1e-4):
     """
     Expectation-Maximization algorithm for Gaussian mixture model.
 
@@ -43,7 +44,7 @@ def em_algorithm(data, num_clusters, max_iter=200, eps=1e-4):
         log_likelihood = np.sum(np.log(np.sum(pi[j] * multivariate_normal.pdf(data, means[j], covariances[j])
                                               for j in range(num_clusters))))
         log_likelihoods.append(log_likelihood)
-
+        print(log_likelihoods)
         # Check for convergence
         if i > 0 and np.abs(log_likelihoods[-1] - log_likelihoods[-2]) < eps:
             break
@@ -97,6 +98,27 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
             axs[i, j - 1].set_xlabel(f"Dimension {i + 1}")
             axs[i, j - 1].set_ylabel(f"Dimension {j + 1}")
     plt.show()
+
+def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi):
+    x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
+    y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
+    # Compute PDF values for contour plot
+    Z = np.zeros((xx.shape[0], xx.shape[1], numberOfClusters))
+    for k in range(numberOfClusters):
+        Z_k = pi[k] * multivariate_normal.pdf(np.hstack((xx.reshape(-1, 1), yy.reshape(-1, 1))), means[k],
+                                              covariances[k])
+        Z[:, :, k] = Z_k.reshape(xx.shape)
+    # Plot data points and contour plot
+    fig, ax = plt.subplots()
+    ax.scatter(data[:, 0], data[:, 1], alpha=0.5)
+    for k in range(numberOfClusters):
+        ax.contour(xx, yy, Z[:, :, k], levels=10, colors=[plt.cm.Set1(k / numberOfClusters)])
+    ax.set_xlim([x_min, x_max])
+    ax.set_ylim([y_min, y_max])
+    ax.set_title('Frame %d' % i)
+    plots.append(fig)
+
 
 
 if __name__ == '__main__':

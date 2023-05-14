@@ -1,7 +1,12 @@
 import math
+import os
 import random
 import time
 
+import imageio
+from matplotlib import pyplot as plt
+from scipy.stats import multivariate_normal
+from ppem import twoDimentionsRepresentation, twoDimentionalGifCreator
 import DataTypes
 from DataTypes import distributions
 import numpy as np
@@ -20,18 +25,20 @@ import numpy
         @param input : input of the PPEM algorithm when we use server client model 
         @return: A string greeting the person.
 """
+
+
 class algortithem:
 
-    def __init__(self, n, inputType, max_iter, number_of_clustures, input=None):
-        self.inputParameters = list(range(n))
-        self.buffer = list(range(n))
-        self.fitness_array = numpy.zeros(n)
+    def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
+        self.pi = None
+        self.log_likelihoods =[]
+        self.covariances = None
+        self.means = None
+        self.eps = eps
 
-        self.n = n
+        self.inputDimentions=inputDimentions
 
-        self.iteration = 0  # current iteration that went through the algorithm
-        self.inputType = inputType
-
+        # data for complexity analysis
         self.tick = 0
         self.sol_time = 0
         self.max_iter = max_iter
@@ -39,43 +46,83 @@ class algortithem:
         self.output2 = []
         self.iter = []
 
+        # Plots to be presented
+        self.plots = []
+
+        # todo: what is this parameter?
+        self.inputParameters = list(range(n))
+        # todo: define N above
+        self.n = n
+
+        # number of iterations in the em algorithm
+        self.iteration = 0  # current iteration that went through the algorithm
+        # todo: maybe just remove the type of the input variable
+        self.inputType = inputType
+        # number of samples /length of input
+        self.numberOfSamples = n
         # number of clusters
         self.k = number_of_clustures
-
+        # todo: might just change it
         self.distributions = []
+        # responsibilities
+        self.responisbilities = None
+        # array of inputs/
+        np.random.seed(42)
+        self.n_inputs = self.create_input() if input == None else input
+        # get dimentions from data/inputs
+        _, self.inputDimentions = self.n_inputs.shape
 
-        self.n_inputs = [] if input==None else input
-        self.initInput()
-
-    # create random sigma and miu values for first iteration!
-    def createSigmasAndMius(self):
-        self.distributions = distributions(self.n_inputs,self.k).normalDistribution(self.n_inputs,self.k)
-
+        self.initParameters()
+    def create_input(self):
+        array = None
+        n_rows = 100
+        n_cols = self.inputDimentions
+        for i in range(self.inputDimentions):
+            if i == 0:
+                array = np.random.randn(n_rows, n_cols)
+            else:
+                new_array = np.random.randn(n_rows , n_cols)+i*5
+                array = np.vstack((array, new_array))
+        return array
     def sorting(self, population):
         # todo if you want to use it ,create a <= operator in input type
         return sorted(population, reverse=False)
 
-    def initInput(self):
-        self.n_inputs = np.concatenate((np.random.normal(loc=5, scale=1, size=(int)self.n/2), np.random.normal(loc=10, scale=2, size=self.n/2)))
+    def initParameters(self):
+        # todo change this
+        num_samples, num_dimensions = self.n_inputs.shape
+        self.pi = np.ones(self.k) / self.k
+        self.means = np.random.rand(self.k, num_dimensions)
+        self.covariances = np.array([np.eye(num_dimensions)] * self.k)
 
-        # self.n_inputs=np
-
-    def initAllAlgoParameters(self):
-        self.initInput() if self.n_inputs ==[] else None
-        self.createSigmasAndMius()
 
     def eStep(self):
-        for input in self.n_inputs:
-            for distribution in self.distributions:
-                pass
-            #todo do the calculations and then do the m step calculations.
-
+        self.responsibilities = np.zeros((self.numberOfSamples, self.k))
+        for j in range(self.k):
+            self.responsibilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
+                                                                               self.covariances[j])
+        self.responsibilities /= np.sum(self.responsibilities, axis=1, keepdims=True)
 
     def mstep(self):
-        # todo implement the m step of the algorithm
-        pass
-    def calculate_Pie(self,input):
-        pass
+        # M-step: update parameters
+        N_k = np.sum(self.responsibilities, axis=0)
+        self.pi = N_k / self.numberOfSamples
+        for j in range(self.k):
+            self.means[j] = np.sum(self.responsibilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
+            self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
+            for n in range(self.numberOfSamples):
+                x = self.n_inputs[n, :] - self.means[j, :]
+                self.covariances[j] += self.responsibilities[n, j] * np.outer(x, x)
+            self.covariances[j] /= N_k[j]
+        self.LogLikelyhood()
+
+
+    def LogLikelyhood(self):
+        # Compute log-likelihood
+        log_likelihood = np.sum(
+            np.log(np.sum(self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j], self.covariances[j])
+                          for j in range(self.k))))
+        self.log_likelihoods.append(log_likelihood)
 
     def handle_initial_time(self):
         self.tick = time.time()
@@ -84,16 +131,17 @@ class algortithem:
     def handle_prints_time(self):
         runtime = time.perf_counter() - self.sol_time
         clockticks = time.time() - self.tick
-        # print_B(self.solution)
-        # print_mean_var((self.pop_mean, variance((self.pop_mean, self.solution.fitness))))
+
         print_time((runtime, clockticks))
 
     def algo(self, i):
         self.eStep()
         self.mstep()
+        self.usePlotingTools(i)
+        self.stopage(i)
 
     def stopage(self, i):
-        return False
+        return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
 
     def solve(self):
         self.handle_initial_time()
@@ -101,18 +149,40 @@ class algortithem:
 
             self.iteration += 1
             self.algo(i)
-            # self.output.append(self.solution.fitness)
-            self.initAllAlgoParameters()
-            print("All input data points",self.n_inputs)
-            print("All sigmas and mius",self.distributions)
+
             self.iter.append(i)
             self.handle_prints_time()
             if self.stopage(i) or i == self.max_iter - 1:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
+                self.savePlotAsGif()
                 break
 
-        return self.output, self.iter,  self.output2, self.inputParameters
+        return self.pi, self.means, self.covariances, self.log_likelihoods
+
+    def usePlotingTools(self, iteration):
+        twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,self.pi)
+    def savePlotAsGif(self):
+        # Save the plots as a GIF
+        dpi = 100
+        plots = []
+        for i, fig in enumerate(self.plots):
+            if not os.path.exists('temp'):
+                os.makedirs('temp')
+
+            fig.savefig('temp/temp%d.png' % i, dpi=dpi)
+            plt.close(fig)
+            plots.append(imageio.imread('temp/temp%d.png' % i))
+        if not os.path.exists('Results'):
+            os.makedirs('Results')
+        imageio.mimsave('Results/PlotOfClustures.gif', plots, fps=5)
+        self.deleteTempImages()
+
+    def deleteTempImages(self):
+        for i, fig in enumerate(self.plots):
+            if os.path.exists('temp/temp%d.png' % i):
+                # remove the file
+                os.remove('temp/temp%d.png' % i)
 
 
 # print_B = lambda x: print(f" Best:{len(x.object)} ,fittness: {x.fitness} ", end=" ")
@@ -127,4 +197,10 @@ print_time = lambda x: print(f"Time :  {x[0]}  ticks: {x[1]}")
 variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 
 if __name__ == '__main__':
-    algortithem(100, DataTypes.pointDataType, 10, 2).solve()
+    n=200
+    inputType=None
+    inputDimentions=2
+    max_iter=100
+    number_ofClusters=4
+
+    pi, means, covariances, log_likelihoods = algortithem(n,inputType,inputDimentions,max_iter,number_ofClusters).solve()
