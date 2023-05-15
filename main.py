@@ -83,7 +83,9 @@ class algortithem:
             else:
                 new_array = np.random.randn(n_rows , n_cols)+i*5
                 array = np.vstack((array, new_array))
+        self.n=n_rows*n_cols
         return array
+
     def sorting(self, population):
         # todo if you want to use it ,create a <= operator in input type
         return sorted(population, reverse=False)
