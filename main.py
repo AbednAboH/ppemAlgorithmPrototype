@@ -6,9 +6,8 @@ import time
 import imageio
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
-from ppem import twoDimentionsRepresentation, twoDimentionalGifCreator
-import DataTypes
-from DataTypes import distributions
+from EM import twoDimentionsRepresentation, twoDimentionalGifCreator
+import Server
 import numpy as np
 
 from settings import GA_MAXITER
@@ -19,7 +18,7 @@ import numpy
         This function greets a person with their name and age.
 
         @param n: number of parameters.
-        @param inputType: type of input data.
+        @param inputType: type of input cc data.
         @param max_iter: number of iterations
         @param number_of_clustures :number of clusters to be associated with the data points 
         @param input : input of the PPEM algorithm when we use server client model 
