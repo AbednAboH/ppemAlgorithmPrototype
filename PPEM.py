@@ -10,6 +10,7 @@ import seal
 class PPEM(algortithem):
     def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
         super(PPEM, self).__init__(n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None)
+        self.ciphertexts = None
         self.public_key=None
         self.private_key=None
     def encrypt_data(self,public_key, data):
@@ -34,19 +35,19 @@ class PPEM(algortithem):
     def eStep(self):
         """Calculate the E-step of the EM algorithm"""
         n_samples, n_features = self.n_inputs.shape
-        n_components = len(self.responsibilities)
-
+        n_components = len(self.responisbilities)
+        # todo swap coefficient with pi , as you might get confused
         # Calculate the probabilities of each sample belonging to each component
         log_probabilities = np.zeros((n_samples, n_components))
         for i in range(n_components):
             mean = self.means[i]
             covariance = self.covariances[i]
-            responsibilities = self.responsibilities[i]
+            responsibilities = self.responisbilities[i]
             covariance_det = np.linalg.det(covariance)
             covariance_inv = np.linalg.inv(covariance)
-            coefficient = 1.0 / np.sqrt((2 * np.pi) ** n_features * covariance_det)
+            self.coefficient = 1.0 / np.sqrt((2 * np.pi) ** n_features * covariance_det)
             for j in range(n_samples):
-                x = self.responsibilities[j]
+                x = self.responisbilities[j]
                 x_encrypted = self.encrypt_data(self.public_key, x)
                 mean_encrypted = self.encrypt_data(self.public_key, mean)
                 covariance_inv_encrypted = self.encrypt_data(self.public_key, covariance_inv)
@@ -58,56 +59,46 @@ class PPEM(algortithem):
         probabilities = np.exp(log_probabilities)
         return log_likelihood, probabilities
 
-    def mstep(self, responsibilities, public_key, secret_key):
+    def mstep(self):
         # Initialize variables
         mu = []
         sigma = []
         pi = []
-        epsilon = 10 ** -9
         ciphertexts = []
-
+        n_samples, n_features = self.n_inputs.shape
         # Calculate the new means, covariances, and mixing coefficients
         for i in range(self.k):
             # Calculate the new mixing coefficient
-            pi_i = (np.sum(gamma[:, i]) + epsilon) / n
+            pi_i = (np.sum(self.pi[:, i]) + self.eps) / n_samples
             pi.append(pi_i)
 
             # Calculate the new mean
-            mu_i = np.sum(gamma[:, i].reshape(-1, 1) * responsibilities, axis=0) / (np.sum(gamma[:, i]) + epsilon)
+            mu_i = np.sum(self.pi[:, i].reshape(-1, 1) * self.responisbilities, axis=0) / (np.sum(self.pi[:, i]) + self.eps)
             mu.append(mu_i)
 
             # Calculate the new covariance
-            diff = responsibilities - mu_i
-            cov_i = np.dot((gamma[:, i].reshape(-1, 1) * diff).T, diff) / (np.sum(gamma[:, i]) + epsilon)
+            diff = self.responisbilities - mu_i
+            cov_i = np.dot((self.pi[:, i].reshape(-1, 1) * diff).T, diff) / (np.sum(self.pi[:, i]) + self.eps)
             sigma.append(cov_i)
 
             # Encrypt the cluster parameters
-            mu_i_encrypted = self.encrypt_data(mu_i, public_key)
-            cov_i_encrypted = self.encrypt_data(cov_i, public_key)
-            pi_i_encrypted = self.encrypt_data(pi_i, public_key)
+            mu_i_encrypted = self.encrypt_data(mu_i, self.public_key)
+            cov_i_encrypted = self.encrypt_data(cov_i, self.public_key)
+            pi_i_encrypted = self.encrypt_data(pi_i, self.public_key)
             ciphertexts.append((mu_i_encrypted, cov_i_encrypted, pi_i_encrypted))
-
-        return ciphertexts, mu, sigma, pi
+        self.pi=pi
+        self.covariances=sigma
+        self.means=mu
+        self.ciphertexts=ciphertexts
+        # return ciphertexts, mu, sigma, pi
 
 
 if __name__ == '__main__':
-    # Set number of clusters
-    numberOfClusters = 3
-    numberOfDimensions = 3
+    n = 200
+    inputType = None
+    inputDimentions = 2
+    max_iter = 100
+    number_ofClusters = 4
 
-    # Generate toy dataset with 3 clusters
-    np.random.seed(42)
-    data = np.vstack((np.random.randn(100, numberOfDimensions), np.random.randn(100, numberOfDimensions) + 5,
-                      np.random.randn(100, numberOfDimensions) + 10))
-
-    # Run EM algorithm
-    pi, means, covariances, log_likelihoods = em_algorithm(data, num_clusters=numberOfClusters)
-
-    # Create meshgrid for contour plot
-
-    twoDimentionsRepresentation(data, means[:, 1:3], covariances[:, 1:3, 1:3], numberOfClusters)
-
-    twoDimentionsRepresentation(data, means[:, :2], covariances[:, :2, :2], numberOfClusters)
-
-    # Plot data points and contour plot
-    multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensions)
+    pi, means, covariances, log_likelihoods = PPEM(n, inputType, inputDimentions, max_iter,
+                                                          number_ofClusters).solve()

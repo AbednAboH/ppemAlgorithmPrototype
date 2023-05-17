@@ -29,6 +29,7 @@ import numpy
 class algortithem:
 
     def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
+
         self.pi = None
         self.log_likelihoods =[]
         self.covariances = None
@@ -95,25 +96,26 @@ class algortithem:
         self.pi = np.ones(self.k) / self.k
         self.means = np.random.rand(self.k, num_dimensions)
         self.covariances = np.array([np.eye(num_dimensions)] * self.k)
+        self.responisbilities = np.zeros((self.numberOfSamples, self.k))
 
 
     def eStep(self):
-        self.responsibilities = np.zeros((self.numberOfSamples, self.k))
+
         for j in range(self.k):
-            self.responsibilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
+            self.responisbilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
                                                                                self.covariances[j])
-        self.responsibilities /= np.sum(self.responsibilities, axis=1, keepdims=True)
+        self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):
         # M-step: update parameters
-        N_k = np.sum(self.responsibilities, axis=0)
+        N_k = np.sum(self.responisbilities, axis=0)
         self.pi = N_k / self.numberOfSamples
         for j in range(self.k):
-            self.means[j] = np.sum(self.responsibilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
+            self.means[j] = np.sum(self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
             self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
                 x = self.n_inputs[n, :] - self.means[j, :]
-                self.covariances[j] += self.responsibilities[n, j] * np.outer(x, x)
+                self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
             self.covariances[j] /= N_k[j]
         self.LogLikelyhood()
 
