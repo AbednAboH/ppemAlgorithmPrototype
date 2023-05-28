@@ -56,7 +56,6 @@ class PPEM(algortithem):
 
     def initParameters(self):
         super(PPEM, self).initParameters()
-        self.covariances=np.ones()
     # todo cange the signiture as you don't need this one , once the library is installed you will be able \
     #  to see if you wrote code that isn't good enough
 
@@ -79,19 +78,23 @@ class PPEM(algortithem):
             for j in range(n_samples):
                 x = self.responisbilities[j]
                 x_encrypted = self.encrypt_data(x)
+                #encrypt parameters
                 print("x_encrypted\n",self.decrypt_data(x_encrypted))
                 mean_encrypted = self.encrypt_data(mean)
                 print("mean_encrypted\n",self.decrypt_data(x_encrypted))
                 print(5*"-------------------")
                 covariance_inv_encrypted = self.encrypt_data(covariance_inv)
                 print("inverse_Encrypted\n",self.decrypt_data(covariance_inv_encrypted))
+                # responsibilities - mean
                 diff_encrypted = self.evaluate.sub(x_encrypted , mean_encrypted)
                 print("minus result\n",self.decrypt_data(diff_encrypted),x-mean)
 
+                # todo cange the way you multiply , as covariances is not actually a multi dimentional matrix
                 quadratic_form_encrypted=self.evaluate.multiply(diff_encrypted, covariance_inv_encrypted)
 
-                print("result:\n"+5*"**********"+"\n",self.decrypt_data(quadratic_form_encrypted))
-                print("should be : ",np.multiply(self.decrypt_data(diff_encrypted),self.decrypt_data(covariance_inv_encrypted)),np.multiply((x-mean),covariance_inv))
+                print("result:\n",self.decrypt_data(quadratic_form_encrypted),5*"**********"+"\n")
+                print("should be : ",np.multiply(self.decrypt_data(diff_encrypted),self.decrypt_data(covariance_inv_encrypted)),
+                      "\nactual matrix:",np.multiply((x-mean),covariance_inv))
 
                 print(5*"**********"+"\n")
                 print(5*"-------------------")
@@ -100,6 +103,7 @@ class PPEM(algortithem):
                 # quadratic_form_encrypted =  diff_encrypted.dot(covariance_inv_encrypted)
                 quadratic_form_encrypted =self.evaluate.multiply(quadratic_form_encrypted,diff_encrypted)
                 print("result:\n" + 5 * "**********"+"\n", self.decrypt_data(quadratic_form_encrypted))
+
                 print("should be : ",np.multiply(self.decrypt_data(quadratic_form_encrypted),self.decrypt_data(diff_encrypted)))
                 print(5*"**********"+"\n")
 

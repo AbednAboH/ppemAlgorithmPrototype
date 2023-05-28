@@ -140,7 +140,7 @@ class algortithem:
     def algo(self, i):
         self.eStep()
         self.mstep()
-        self.usePlotingTools(i)
+        # self.usePlotingTools(i)
         self.stopage(i)
 
     def stopage(self, i):
@@ -200,9 +200,9 @@ print_time = lambda x: print(f"Time :  {x[0]}  ticks: {x[1]}")
 variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 
 if __name__ == '__main__':
-    n=200
+    n=300
     inputType=None
-    inputDimentions=2
+    inputDimentions=3
     max_iter=100
     number_ofClusters=4
 
