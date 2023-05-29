@@ -117,6 +117,7 @@ class algortithem:
                 x = self.n_inputs[n, :] - self.means[j, :]
                 self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
             self.covariances[j] /= N_k[j]
+        print(self.covariances)
         self.LogLikelyhood()
 
 

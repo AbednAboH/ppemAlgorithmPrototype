@@ -5,53 +5,41 @@ from scipy.stats import multivariate_normal
 from EM import *
 # from encryptions import EMAlgorithm
 from main import algortithem
-import seal
-
+import tenseal as ts
+"""
+For the parameters of the encryption model you can refer to https://github.com/OpenMined/TenSEAL/blob/main/tutorials/Tutorial%203%20-%20Benchmarks.ipynb for guidance
+"""
 class PPEM(algortithem):
     def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
         super(PPEM, self).__init__(n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None)
-        params = seal.EncryptionParameters(seal.scheme_type.bfv)
-        params.set_poly_modulus_degree(4096)
-        params.set_coeff_modulus(seal.CoeffModulus.BFVDefault(4096))
-        params.set_plain_modulus(40961)
-        self.context = seal.SEALContext(params)
-        self.keygen=seal.KeyGenerator(self.context)
-        # self.relin_keys = self.keygen.create_relin_keys()
-        self.ciphertexts = None
-        self.public_key=self.keygen.create_public_key()
-        self.private_key=self.keygen.secret_key()
-        self.encoder=seal.BatchEncoder(self.context)
-        self.evaluate=seal.Evaluator(self.context)
+        # create TenSEALContext
+        self.context = ts.context(
+            scheme=ts.SCHEME_TYPE.BFV,
+            poly_modulus_degree=8192,
+            plain_modulus=786433,
+            coeff_mod_bit_sizes=[40, 21, 21, 21, 21, 21, 21, 40],
+            encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC,)
+        # scale of ciphertext to use might not work on BFV model , surly works on CKKS
+        self.context.global_scale = 2 ** 40
+        # dot product key needed for the dot operation
+        self.context.generate_galois_keys()
+
     def encrypt_data(self, data):
         """Encrypt the data using BFV encryption"""
-        # Create a plaintext object and encode the data
-        # data is scaled up because the encoder taked only integers from type numpy.int64
-        data1=np.power(data,2)*40
-        data1=data1.astype(np.int64)
-        data1=np.ravel(data1)
-        # print("orig:\n",data)
-        # print("raveled and powered up:\n",data1)
-        data1=self.encoder.encode(data1)
-
-        # Create an encryptor using the public key
-        encryptor = seal.Encryptor(self.context, self.public_key)
-
-        # Encrypt the plaintext using the encryptor
-        encrypted_data=encryptor.encrypt(data1)
-        # print("encrypted:\n",encrypted_data)
-        # print("encrypted:\n",self.decrypt_data(encrypted_data))
-
-        return encrypted_data
+        # encrypted_data=ts.bfv_vector(self.context,data)
+        tensorData=ts.bfv_tensor(self.context,data)
+        return tensorData
 
     def decrypt_data(self,encrypted_data):
         """Decrypt the data using BFV decryption"""
-        decreptor = seal.Decryptor(self.context, self.private_key)
-        decrepted = decreptor.decrypt(encrypted_data)
+
         # print("decoded:\n", self.encoder.decode(decrepted))
 
         # data1=np.power(self.encoder.decode(decrepted),1/2)/40
+        return encrypted_data.decrypt().tolist()
 
-        return self.encoder.decode(decrepted)
+    # def homomorphic_matrixMultiplication(self,vector,matrixAsVector):
+    #     ts.enc_matmul_encoding()
 
     def initParameters(self):
         super(PPEM, self).initParameters()
@@ -85,11 +73,11 @@ class PPEM(algortithem):
                 covariance_inv_encrypted = self.encrypt_data(covariance_inv)
                 print("inverse_Encrypted\n",self.decrypt_data(covariance_inv_encrypted))
                 # responsibilities - mean
-                diff_encrypted = self.evaluate.sub(x_encrypted , mean_encrypted)
+                diff_encrypted = x_encrypted - mean_encrypted
                 print("minus result\n",self.decrypt_data(diff_encrypted),x-mean)
 
                 # todo cange the way you multiply , as covariances is not actually a multi dimentional matrix
-                quadratic_form_encrypted=self.evaluate.multiply(diff_encrypted, covariance_inv_encrypted)
+                quadratic_form_encrypted=diff_encrypted.dot(covariance_inv_encrypted)
 
                 print("result:\n",self.decrypt_data(quadratic_form_encrypted),5*"**********"+"\n")
                 print("should be : ",np.multiply(self.decrypt_data(diff_encrypted),self.decrypt_data(covariance_inv_encrypted)),
@@ -100,7 +88,7 @@ class PPEM(algortithem):
                 print("diff_encrypted\n", self.decrypt_data(diff_encrypted))
                 print("quadric form:\n", self.decrypt_data(quadratic_form_encrypted))
                 # quadratic_form_encrypted =  diff_encrypted.dot(covariance_inv_encrypted)
-                quadratic_form_encrypted =self.evaluate.multiply(quadratic_form_encrypted,diff_encrypted)
+                quadratic_form_encrypted =quadratic_form_encrypted.dot(diff_encrypted)
                 print("result:\n" + 5 * "**********"+"\n", self.decrypt_data(quadratic_form_encrypted))
 
                 print("should be : ",np.multiply(self.decrypt_data(quadratic_form_encrypted),self.decrypt_data(diff_encrypted)))
@@ -108,7 +96,7 @@ class PPEM(algortithem):
 
                 quadratic_form = self.decrypt_data(quadratic_form_encrypted)
 
-                quadratic_form=np.array(quadratic_form[:len(responsibilities)])
+                quadratic_form=np.array(quadratic_form)
                 print(quadratic_form,responsibilities,covariance_det)
 
                 log_probabilities[j, i] = np.log(responsibilities) - 0.5 * np.log(covariance_det) - 0.5 * quadratic_form
