@@ -77,7 +77,7 @@ class algortithem:
         array = None
         n_rows = 100
         n_cols = self.inputDimentions
-        for i in range(self.inputDimentions):
+        for i in range(self.k):
             if i == 0:
                 array = np.random.randn(n_rows, n_cols)
             else:
@@ -104,8 +104,8 @@ class algortithem:
         for j in range(self.k):
             self.responisbilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
                                                                                self.covariances[j])
-            print("responsibilities j\n", self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
-                                                                               self.covariances[j]),"\n")
+            # print("responsibilities j\n", self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
+            #                                                                    self.covariances[j]),"\n")
         self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):
@@ -119,7 +119,7 @@ class algortithem:
                 x = self.n_inputs[n, :] - self.means[j, :]
                 self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
             self.covariances[j] /= N_k[j]
-        print(self.covariances)
+        # print(self.covariances)
         self.LogLikelyhood()
 
 
@@ -143,8 +143,8 @@ class algortithem:
     def algo(self, i):
         self.eStep()
         self.mstep()
-        # self.usePlotingTools(i)
-        self.stopage(i)
+        self.usePlotingTools(i)
+
 
     def stopage(self, i):
         return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
@@ -205,8 +205,9 @@ variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 if __name__ == '__main__':
     n=300
     inputType=None
-    inputDimentions=3
+    inputDimentions=2
     max_iter=100
-    number_ofClusters=4
+    number_ofClusters=3
+
 
     pi, means, covariances, log_likelihoods = algortithem(n,inputType,inputDimentions,max_iter,number_ofClusters).solve()
