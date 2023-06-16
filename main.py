@@ -104,6 +104,8 @@ class algortithem:
         for j in range(self.k):
             self.responisbilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
                                                                                self.covariances[j])
+            print("responsibilities j\n", self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
+                                                                               self.covariances[j]),"\n")
         self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):

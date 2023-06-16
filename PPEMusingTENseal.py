@@ -26,8 +26,9 @@ class PPEM(algortithem):
 
     def encrypt_data(self, data):
         """Encrypt the data using BFV encryption"""
-        # encrypted_data=ts.bfv_vector(self.context,data)
-        tensorData=ts.bfv_tensor(self.context,data)
+        data1=np.power(data,2)*40
+        tensorData=ts.bfv_tensor(self.context,data1)
+        tensorData.square().transpose_()
         return tensorData
 
     def decrypt_data(self,encrypted_data):
@@ -35,11 +36,18 @@ class PPEM(algortithem):
 
         # print("decoded:\n", self.encoder.decode(decrepted))
 
-        # data1=np.power(self.encoder.decode(decrepted),1/2)/40
         return encrypted_data.decrypt().tolist()
+
 
     # def homomorphic_matrixMultiplication(self,vector,matrixAsVector):
     #     ts.enc_matmul_encoding()
+    def MultiVariantPDF(self,x,mean,covariance):
+        #todo : to be altered to a matching function
+        n = len(mean)
+        coeff = 1.0 / ((2 * pi) ** (n / 2) * np.sqrt(det(covariance)))
+        exponent = -0.5 * np.dot(np.dot((x - mean), inv(covariance)), (x - mean).T)
+        return coeff * exp(exponent)
+
 
     def initParameters(self):
         super(PPEM, self).initParameters()
@@ -58,48 +66,49 @@ class PPEM(algortithem):
             covariance = self.covariances[i]
             responsibilities = self.responisbilities[i]
             covariance_det = np.linalg.det(covariance)
+            # todo do not use the invers , there is a better way+
             covariance_inv = np.linalg.inv(covariance)
-            print("covariance\n",covariance)
-            print("covariance inverse\n",covariance_inv)
+            # print("covariance\n",covariance)
+            # print("covariance inverse\n",covariance_inv)
             self.coefficient = 1.0 / np.sqrt((2 * np.pi) ** n_features * covariance_det)
             for j in range(n_samples):
-                x = self.responisbilities[j]
+                x = self.responisbilities[i]
                 x_encrypted = self.encrypt_data(x)
                 #encrypt parameters
                 print("x_encrypted\n",self.decrypt_data(x_encrypted))
                 mean_encrypted = self.encrypt_data(mean)
                 print("mean_encrypted\n",self.decrypt_data(x_encrypted))
                 print(5*"-------------------")
-                covariance_inv_encrypted = self.encrypt_data(covariance_inv)
-                print("inverse_Encrypted\n",self.decrypt_data(covariance_inv_encrypted))
+                covariance_inv_encrypted = self.encrypt_data(covariance)
+                # print("inverse_Encrypted\n",self.decrypt_data(covariance_inv_encrypted))
                 # responsibilities - mean
-                diff_encrypted = x_encrypted - mean_encrypted
+                diff_encrypted = x_encrypted.sub(mean_encrypted)
                 print("minus result\n",self.decrypt_data(diff_encrypted),x-mean)
 
                 # todo cange the way you multiply , as covariances is not actually a multi dimentional matrix
                 quadratic_form_encrypted=diff_encrypted.dot(covariance_inv_encrypted)
 
                 print("result:\n",self.decrypt_data(quadratic_form_encrypted),5*"**********"+"\n")
-                print("should be : ",np.multiply(self.decrypt_data(diff_encrypted),self.decrypt_data(covariance_inv_encrypted)),
-                      "\nactual matrix:",np.multiply((x-mean),covariance_inv))
-
-                print(5*"**********"+"\n")
-                print(5*"-------------------")
-                print("diff_encrypted\n", self.decrypt_data(diff_encrypted))
-                print("quadric form:\n", self.decrypt_data(quadratic_form_encrypted))
-                # quadratic_form_encrypted =  diff_encrypted.dot(covariance_inv_encrypted)
+                # print("should be : ",np.multiply(self.decrypt_data(diff_encrypted),self.decrypt_data(covariance_inv_encrypted)),
+                      # "\nactual matrix:",np.multiply((x-mean),covariance_inv))
+                #
+                # print(5*"**********"+"\n")
+                # print(5*"-------------------")
+                # print("diff_encrypted\n", self.decrypt_data(diff_encrypted))
+                # print("quadric form:\n", self.decrypt_data(quadratic_form_encrypted))
+                # # quadratic_form_encrypted =  diff_encrypted.dot(covariance_inv_encrypted)
                 quadratic_form_encrypted =quadratic_form_encrypted.dot(diff_encrypted)
                 print("result:\n" + 5 * "**********"+"\n", self.decrypt_data(quadratic_form_encrypted))
-
-                print("should be : ",np.multiply(self.decrypt_data(quadratic_form_encrypted),self.decrypt_data(diff_encrypted)))
-                print(5*"**********"+"\n")
+                #
+                # print("should be : ",np.multiply(self.decrypt_data(quadratic_form_encrypted),self.decrypt_data(diff_encrypted)))
+                # # print(5*"**********"+"\n")
 
                 quadratic_form = self.decrypt_data(quadratic_form_encrypted)
 
                 quadratic_form=np.array(quadratic_form)
-                print(quadratic_form,responsibilities,covariance_det)
+                print("Quadric:",quadratic_form,"\n Responsibilities[i]:",responsibilities,"\ncovariance",covariance_det)
 
-                log_probabilities[j, i] = np.log(responsibilities) - 0.5 * np.log(covariance_det) - 0.5 * quadratic_form
+                log_probabilities[j, i] = np.log(self.responisbilities[j][i]) - 0.5 * np.log(covariance_det) - 0.5 * quadratic_form
         log_likelihood = np.sum(log_probabilities, axis=1)
         log_probabilities -= log_likelihood[:, np.newaxis]
         probabilities = np.exp(log_probabilities)
