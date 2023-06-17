@@ -27,7 +27,7 @@ class PPEM(algortithem):
     def encrypt_data(self, data):
         """Encrypt the data using BFV encryption"""
         data1=np.power(data,2)*40
-        tensorData=ts.bfv_tensor(self.context,data1)
+        tensorData=ts.ckks_tensor(self.context,data1)
         tensorData.square().transpose_()
         return tensorData
 
@@ -42,13 +42,34 @@ class PPEM(algortithem):
     # def homomorphic_matrixMultiplication(self,vector,matrixAsVector):
     #     ts.enc_matmul_encoding()
     def MultiVariantPDF(self,x,mean,covariance):
-        #todo : to be altered to a matching function
-        n = len(mean)
-        coeff = 1.0 / ((2 * pi) ** (n / 2) * np.sqrt(det(covariance)))
-        exponent = -0.5 * np.dot(np.dot((x - mean), inv(covariance)), (x - mean).T)
-        return coeff * exp(exponent)
+        """Calculate the multivariate probability density function"""
+        # Convert x, mean, and covariance to encrypted tensors
+        x_encrypted = self.encrypt_data(x)
+        mean_encrypted = self.encrypt_data(mean)
+        covariance_encrypted = self.encrypt_data(covariance)
 
+        # Calculate the exponent
+        diff_encrypted = x_encrypted.sub(mean_encrypted)
+        cholesky_encrypted = covariance_encrypted.cholesky()
 
+        cholesky_inv_encrypted = cholesky_encrypted.inverse()
+        quadratic_form_encrypted = diff_encrypted.dot(cholesky_inv_encrypted).square().sum(dim=1)
+        exponent_encrypted = quadratic_form_encrypted.neg().div(2)
+
+        # Calculate the coefficient
+        coefficient = 1.0 / ((2 * np.pi) ** (self.inputDimensions / 2) * cholesky_encrypted.diagonal().prod())
+        coefficient_encrypted = self.encrypt_data(np.array(coefficient))
+
+        # Calculate the result
+        result_encrypted = coefficient_encrypted * exponent_encrypted.exp()
+
+        # Decrypt the result
+        result = self.decrypt_data(result_encrypted)
+
+        return result
+
+    pass
+    ts.im2col_encoding().polyval_()
     def initParameters(self):
         super(PPEM, self).initParameters()
     # todo cange the signiture as you don't need this one , once the library is installed you will be able \
