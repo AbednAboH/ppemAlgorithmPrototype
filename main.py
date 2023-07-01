@@ -7,15 +7,23 @@ import imageio
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from EM import twoDimentionsRepresentation, twoDimentionalGifCreator
-import Server
+
 import numpy as np
 
 from settings import GA_MAXITER
 
 import numpy
 
+from sklearn.mixture import GaussianMixture
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+
+
+
+
+
 """
-        This function greets a person with their name and age.
+         basic EM 
 
         @param n: number of parameters.
         @param inputType: type of input cc data.
@@ -28,7 +36,7 @@ import numpy
 
 class algortithem:
 
-    def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
+    def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4,epsilonExceleration=True, input=None):
 
         self.pi = None
         self.log_likelihoods =[]
@@ -71,7 +79,7 @@ class algortithem:
         self.n_inputs = self.create_input() if input == None else input
         # get dimentions from data/inputs
         _, self.inputDimentions = self.n_inputs.shape
-
+        self.epsilonExceleration=epsilonExceleration
         self.initParameters()
     def create_input(self):
         array = None
@@ -99,6 +107,7 @@ class algortithem:
         self.responisbilities = np.zeros((self.numberOfSamples, self.k))
 
 
+
     def eStep(self):
 
         for j in range(self.k):
@@ -122,6 +131,27 @@ class algortithem:
         # print(self.covariances)
         self.LogLikelyhood()
 
+    def mStep_epsilon(self):
+        # M-step: update parameters
+        Nk = np.sum(self.responisbilities, axis=0)
+        oldMeans = self.means.copy()
+
+        # M*-step with ε-acceleration
+        for j in range(self.k):
+            self.means[j] = np.sum(
+                self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0
+            ) / Nk[j]
+            self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
+            for n in range(self.numberOfSamples):
+                x = self.n_inputs[n, :] - self.means[j, :]
+                self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
+            self.covariances[j] /= Nk[j]
+
+            # ε-acceleration
+            self.means[j] = self.eps * oldMeans[j] + (1 - self.eps) * self.means[j]
+
+        self.pi = Nk / self.numberOfSamples
+        self.LogLikelyhood()
 
     def LogLikelyhood(self):
         # Compute log-likelihood
@@ -142,9 +172,8 @@ class algortithem:
 
     def algo(self, i):
         self.eStep()
-        self.mstep()
+        self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
         self.usePlotingTools(i)
-
 
     def stopage(self, i):
         return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
