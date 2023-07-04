@@ -4,21 +4,24 @@ import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 from EM import *
 # from encryptions import EMAlgorithm
-from main import algortithem
+from FastEM import algortithem
 import tenseal as ts
+from settings import *
 """
 For the parameters of the encryption model you can refer to https://github.com/OpenMined/TenSEAL/blob/main/tutorials/Tutorial%203%20-%20Benchmarks.ipynb for guidance
+
 """
+# todo: maybe add gradiant deccent for epsilons value
 class PPEM(algortithem):
     def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
         super(PPEM, self).__init__(n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None)
         # create TenSEALContext
         self.context = ts.context(
-            scheme=ts.SCHEME_TYPE.BFV,
-            poly_modulus_degree=8192,
-            plain_modulus=786433,
-            coeff_mod_bit_sizes=[40, 21, 21, 21, 21, 21, 21, 40],
-            encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC,)
+            scheme=scheme,
+            poly_modulus_degree=poly_modulus_degree,
+            plain_modulus=plain_modulus,
+            coeff_mod_bit_sizes=coeff_mod_bit_sizes,
+            encryption_type=encryption_type,)
         # scale of ciphertext to use might not work on BFV model , surly works on CKKS
         self.context.global_scale = 2 ** 40
         # dot product key needed for the dot operation
@@ -33,48 +36,7 @@ class PPEM(algortithem):
 
     def decrypt_data(self,encrypted_data):
         """Decrypt the data using BFV decryption"""
-
-        # print("decoded:\n", self.encoder.decode(decrepted))
-
         return encrypted_data.decrypt().tolist()
-
-
-    # def homomorphic_matrixMultiplication(self,vector,matrixAsVector):
-    #     ts.enc_matmul_encoding()
-    def MultiVariantPDF(self,x,mean,covariance):
-        """Calculate the multivariate probability density function"""
-        # Convert x, mean, and covariance to encrypted tensors
-        x_encrypted = self.encrypt_data(x)
-        mean_encrypted = self.encrypt_data(mean)
-        covariance_encrypted = self.encrypt_data(covariance)
-
-        # Calculate the exponent
-        diff_encrypted = x_encrypted.sub(mean_encrypted)
-        cholesky_encrypted = covariance_encrypted.cholesky()
-
-        cholesky_inv_encrypted = cholesky_encrypted.inverse()
-        quadratic_form_encrypted = diff_encrypted.dot(cholesky_inv_encrypted).square().sum(dim=1)
-        exponent_encrypted = quadratic_form_encrypted.neg().div(2)
-
-        # Calculate the coefficient
-        coefficient = 1.0 / ((2 * np.pi) ** (self.inputDimensions / 2) * cholesky_encrypted.diagonal().prod())
-        coefficient_encrypted = self.encrypt_data(np.array(coefficient))
-
-        # Calculate the result
-        result_encrypted = coefficient_encrypted * exponent_encrypted.exp()
-
-        # Decrypt the result
-        result = self.decrypt_data(result_encrypted)
-
-        return result
-
-    pass
-    ts.im2col_encoding().polyval_()
-    def initParameters(self):
-        super(PPEM, self).initParameters()
-    # todo cange the signiture as you don't need this one , once the library is installed you will be able \
-    #  to see if you wrote code that isn't good enough
-
     def eStep(self):
         """Calculate the E-step of the EM algorithm"""
         n_samples, n_features = self.n_inputs.shape

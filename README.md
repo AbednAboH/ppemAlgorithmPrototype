@@ -47,3 +47,21 @@
     * i am currently thinking of solutions , as we just didn't want to create the " standard " algorithm ! this might have been a mistake ! 
     * although thrishold encryption seems good , i don't think that we can apply it as fully secure , maybe we can ! time will tell ! 
 
+# 3.7.23 
+    we are now basing our approch via a peer-to-peer concept, inspired by "A Local Scalable Distributed Expectation Maximization Algorithm for Large
+    Peer-to-Peer Networks"
+    ![img.png](img.png)
+
+    in which P is each peer in a network , m is the number of data points in each peer 
+    in our Implentation each peer would be a client ,and the data sent to the server would be encrypted via homomorphic encryption  
+    while the E-step would be performed in each "peer"'s environment the m step would then be split between both the server and the client , 
+    meaning the sums with from a=1 to m would be performed in each clients environment and the sums from i=1 to p would be performed in the servers side 
+
+
+    ,
+    security is garanteed if the server is an honest but curious adversary, to which we could add another layer of security to check the validity of the client 
+    and the validity of the server such as Elliptic Curve Digital Signature Algorithm or Edwards-curve Digital Signature Algorithm
+    to make sure that the server or client is who they say they are 
+# 4.7.23 
+    i've already implemented the algorithm without using encryption , what remains is to check if it works and then implement the encryption scheme ! 
+    the full skelaton of the algorithm is ready 

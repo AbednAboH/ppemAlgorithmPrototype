@@ -18,10 +18,6 @@ from sklearn.mixture import GaussianMixture
 from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans
 
-
-
-
-
 """
          basic EM 
 
@@ -31,20 +27,22 @@ from sklearn.cluster import KMeans
         @param number_of_clustures :number of clusters to be associated with the data points 
         @param input : input of the PPEM algorithm when we use server client model 
         @return: A string greeting the person.
+        for normal EM with likelyhood function algorithm use eps=0 
 """
 
 
 class algortithem:
 
-    def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4,epsilonExceleration=True, input=None):
+    def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, epsilonExceleration=True,
+                 input=None, plottingTools=False):
 
         self.pi = None
-        self.log_likelihoods =[]
+        self.log_likelihoods = []
         self.covariances = None
         self.means = None
         self.eps = eps
 
-        self.inputDimentions=inputDimentions
+        self.inputDimentions = inputDimentions
 
         # data for complexity analysis
         self.tick = 0
@@ -79,8 +77,11 @@ class algortithem:
         self.n_inputs = self.create_input() if input == None else input
         # get dimentions from data/inputs
         _, self.inputDimentions = self.n_inputs.shape
-        self.epsilonExceleration=epsilonExceleration
+
+        self.epsilonExceleration = epsilonExceleration
+        self.plottingEnabled = plottingTools
         self.initParameters()
+
     def create_input(self):
         array = None
         n_rows = 100
@@ -89,9 +90,9 @@ class algortithem:
             if i == 0:
                 array = np.random.randn(n_rows, n_cols)
             else:
-                new_array = np.random.randn(n_rows , n_cols)+i*5
+                new_array = np.random.randn(n_rows, n_cols) + i * 5
                 array = np.vstack((array, new_array))
-        self.n=n_rows*n_cols
+        self.n = n_rows * n_cols
         return array
 
     def sorting(self, population):
@@ -106,21 +107,16 @@ class algortithem:
         self.covariances = np.array([np.eye(num_dimensions)] * self.k)
         self.responisbilities = np.zeros((self.numberOfSamples, self.k))
 
-
-
     def eStep(self):
 
         for j in range(self.k):
             self.responisbilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
                                                                                self.covariances[j])
-            # print("responsibilities j\n", self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
-            #                                                                    self.covariances[j]),"\n")
         self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):
         # M-step: update parameters
         N_k = np.sum(self.responisbilities, axis=0)
-        self.pi = N_k / self.numberOfSamples
         for j in range(self.k):
             self.means[j] = np.sum(self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
             self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
@@ -128,7 +124,7 @@ class algortithem:
                 x = self.n_inputs[n, :] - self.means[j, :]
                 self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
             self.covariances[j] /= N_k[j]
-        # print(self.covariances)
+        self.pi = N_k / self.numberOfSamples
         self.LogLikelyhood()
 
     def mStep_epsilon(self):
@@ -170,10 +166,10 @@ class algortithem:
 
         print_time((runtime, clockticks))
 
-    def algo(self, i):
+    def algo(self, i=0):
+        if self.plottingEnabled: self.usePlotingTools(i)
         self.eStep()
-        self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
-        self.usePlotingTools(i)
+        return self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
 
     def stopage(self, i):
         return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
@@ -196,7 +192,8 @@ class algortithem:
         return self.pi, self.means, self.covariances, self.log_likelihoods
 
     def usePlotingTools(self, iteration):
-        twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,self.pi)
+        twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots, self.pi)
+
     def savePlotAsGif(self):
         # Save the plots as a GIF
         dpi = 100
@@ -232,11 +229,11 @@ print_time = lambda x: print(f"Time :  {x[0]}  ticks: {x[1]}")
 variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 
 if __name__ == '__main__':
-    n=300
-    inputType=None
-    inputDimentions=2
-    max_iter=100
-    number_ofClusters=3
+    n = 300
+    inputType = None
+    inputDimentions = 2
+    max_iter = 100
+    number_ofClusters = 3
 
-
-    pi, means, covariances, log_likelihoods = algortithem(n,inputType,inputDimentions,max_iter,number_ofClusters).solve()
+    pi, means, covariances, log_likelihoods = algortithem(n, inputType, inputDimentions, max_iter,
+                                                          number_ofClusters).solve()
