@@ -10,7 +10,6 @@
     full fast EM algorithm works with log likelyhood and responsabilities ,plus an added feature that represents the Plot of the algorithm throughout its life Span 
     added randomally created points with multi dimentions , although the plot works only on 2 dimentions , but the algortithm itself works on all dimentions 
 
-![](Results/PlotOfClustures.gif)
 # 17.5.23
     corrected the algorithm of full fast em , that wasn't working correctly , it took too much iterations for convergence 
 # 25.5.23 
@@ -33,6 +32,7 @@
                 * uses BFV ecryption to encrypt it's data 
                 * applies EM on its own data set 
                 * sends the results to the server using a secure connection SSL 
+# 8.6.23
     # updates on the algorithm itself:
         * client uses k-means to intitialize the data 
             * might send part of the information not all of it ! 
@@ -42,15 +42,19 @@
                 meaning we will cluster the parameters of the em algorithm so that when we calculate the m step 
                 it would be much more efficient ! 
         * we are exploring threshold encryption !
-    
+
+# 10.6.23-21.6.23
+    * our approuch was flawed and wasn't even a good idea as we have as k means will be biased on certain as explained by the professor to us , and that we might need to think of a better approach .
+    * in this period we were researching different Privacy Preserving k-means and em algorothims to think of a new concept.
 # 1.7.23
     i am currently thinking of solutions , as we just didn't want to create the " standard " algorithm ! this might have been a mistake ! 
     although thrishold encryption seems good , i don't think that we can apply it as fully secure , maybe we can ! time will tell ! 
+    there should be an option to simply split the work between the server and client while at the same time not compromising that much of security/performance 
 
 # 3.7.23 
     we are now basing our approch via a peer-to-peer concept, inspired by "A Local Scalable Distributed Expectation Maximization Algorithm for Large
     Peer-to-Peer Networks"
-    ![img.png](img.png)
+    ![image](https://github.com/AbednAboH/ppemAlgorithmPrototype/assets/92520508/59f512dd-2256-452a-a8a4-696841ce61e5)
 
     in which P is each peer in a network , m is the number of data points in each peer 
     in our Implentation each peer would be a client ,and the data sent to the server would be encrypted via homomorphic encryption  
