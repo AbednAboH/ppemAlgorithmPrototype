@@ -54,7 +54,8 @@
 # 3.7.23 
     we are now basing our approch via a peer-to-peer concept, inspired by "A Local Scalable Distributed Expectation Maximization Algorithm for Large
     Peer-to-Peer Networks"
-    ![image](https://github.com/AbednAboH/ppemAlgorithmPrototype/assets/92520508/59f512dd-2256-452a-a8a4-696841ce61e5)
+    
+![Untitled](https://github.com/AbednAboH/ppemAlgorithmPrototype/assets/92520508/6f4608aa-bd05-4d05-83d4-69a8067f68ef)
 
     in which P is each peer in a network , m is the number of data points in each peer 
     in our Implentation each peer would be a client ,and the data sent to the server would be encrypted via homomorphic encryption  
