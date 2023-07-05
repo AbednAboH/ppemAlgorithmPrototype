@@ -63,7 +63,6 @@ class algortithem:
         self.covariances = None
         self.means = None
         self.eps = eps
-        print(self.eps.__doc__)
         self.inputDimentions = inputDimentions
 
         # data for complexity analysis
@@ -115,7 +114,7 @@ class algortithem:
             else:
                 new_array = np.random.randn(n_rows, n_cols) + i * 5
                 array = np.vstack((array, new_array))
-        self.n = n_rows * n_cols
+        # self.n = n_rows * n_cols
         return array
 
     def sorting(self, population):
@@ -190,7 +189,8 @@ class algortithem:
         self.pi = Nk / self.numberOfSamples
 
         self.LogLikelyhood()
-
+    def getLikelyhood(self):
+        return self.log_likelihoods[-1]
     def LogLikelyhood(self):
         """
         Log Likleyhood function workes on local parameters
@@ -272,6 +272,9 @@ class algortithem:
                 break
 
         return self.pi, self.means, self.covariances, self.log_likelihoods
+
+    def update_paramters(self, pi, means, covariances):
+        self.pi, self.means, self.covariances = pi, means, covariances
 
     def usePlotingTools(self, iteration):
         """Plot the EM output in 2 dimensions """
