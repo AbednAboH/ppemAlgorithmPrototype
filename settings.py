@@ -9,3 +9,4 @@ poly_modulus_degree=8192,
 plain_modulus=786433,
 coeff_mod_bit_sizes=[40, 21, 21, 21, 21, 21, 21, 40],
 encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC,
+
