@@ -65,3 +65,6 @@
 # 4.7.23 
     i've already implemented the algorithm without using encryption , what remains is to check if it works and then implement the encryption scheme ! 
     the full skelaton of the algorithm is ready 
+# 5.7.23 
+    added more documentation to the code , and some modificiations on the Partial EM and Server(Full EM) algorithms , still not finished for the day ,
+    and the full algorithm should be done by tommorow or the day after that 
