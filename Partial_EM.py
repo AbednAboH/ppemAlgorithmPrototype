@@ -202,11 +202,12 @@ class Server(algortithem):
         return True if i>1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps and self.log_likelihoods[-1] - self.log_likelihoods[-2]>=0 else False
 if __name__ == '__main__':
     for n in range(100, 10000, 100):
-        server = Server(n=n, max_iter=1000, number_of_clustures=2, plottingTools=False, eps=0.0001,clients=1,plot_name="n300_k3_c1")
-        pi, means, covariances, log_likelihoods,n_input  = server.solve()
-
         for k in range (2,4):
-            if n%k==0:
+            if n % k == 0:
+                server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
+                                plot_name="n300_k3_c1")
+                pi, means, covariances, log_likelihoods, n_input = server.solve()
+
                 for clients in range(2,10,4):
                     if n%clients==0 and n/k>20:
                         print("\n\n\n","------"*10)
