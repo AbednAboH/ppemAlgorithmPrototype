@@ -41,7 +41,7 @@ class algortithem:
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 1e-4, epsilonExceleration: bool = True,
-                 input: np.array = None, plottingTools: bool = False):
+                 input: np.array = None, plottingTools: bool = False, plot_name=""):
 
         """
         Initiate the algorithm's parameters
@@ -92,13 +92,15 @@ class algortithem:
         self.responisbilities = None
         # array of inputs/
         np.random.seed(42)
-        self.n_inputs = self.create_input() if input == None else input
+        self.n_inputs = self.create_input() if input is None else input
         # get dimentions from data/inputs
         _, self.inputDimentions = self.n_inputs.shape
 
         self.epsilonExceleration = epsilonExceleration
         self.plottingEnabled = plottingTools
         self.initParameters()
+
+        self.plot_name = plot_name
 
     def create_input(self):
         """
@@ -111,10 +113,15 @@ class algortithem:
         for i in range(self.k):
             if i == 0:
                 array = np.random.randn(n_rows, n_cols)
+                print("\n",i,len(array))
+
             else:
                 new_array = np.random.randn(n_rows, n_cols) + i * 5
                 array = np.vstack((array, new_array))
+                print("\n",i,len(array))
+
         # self.n = n_rows * n_cols
+
         return array
 
     def sorting(self, population):
@@ -174,9 +181,11 @@ class algortithem:
 
         # M*-step with ε-acceleration
         for j in range(self.k):
+
             self.means[j] = np.sum(
                 self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0
             ) / Nk[j]
+
             self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
                 x = self.n_inputs[n, :] - self.means[j, :]
@@ -189,18 +198,25 @@ class algortithem:
         self.pi = Nk / self.numberOfSamples
 
         self.LogLikelyhood()
+
     def getLikelyhood(self):
         return self.log_likelihoods[-1]
+
     def LogLikelyhood(self):
         """
         Log Likleyhood function workes on local parameters
         :return: appends LogLikeleyhood to the logLikelyhood stack
         """
         # Compute log-likelihood
-        log_likelihood = np.sum(
-            np.log(np.sum(self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j], self.covariances[j])
-                          for j in range(self.k))))
-        self.log_likelihoods.append(log_likelihood)
+        try:
+            log_likelihood = np.sum(
+                np.log(np.sum(self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j], self.covariances[j])
+                              for j in range(self.k))))
+            self.log_likelihoods.append(log_likelihood)
+
+        except np.linalg.LinAlgError:
+            print(f"{self.plot_name}  Singular matrix cannot be inversed! ")
+            print("means\n",self.means,"\n","covariances\n",self.covariances)
 
     def handle_initial_time(self):
         """calculates initial time"""
@@ -229,7 +245,7 @@ class algortithem:
             list of 3 arrays and length of input, Pi,Means,Covariances,number of samples
         """
 
-        if self.plottingEnabled: self.usePlotingTools(i)
+        if self.plottingEnabled: self.usePlotingTools(i, self.plot_name == "")
         self.eStep()
         return self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
 
@@ -269,41 +285,50 @@ class algortithem:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
                 self.savePlotAsGif()
+                self.usePlotingTools(i, True)
                 break
 
-        return self.pi, self.means, self.covariances, self.log_likelihoods
+        return self.pi, self.means, self.covariances, self.log_likelihoods, self.n_inputs
 
     def update_paramters(self, pi, means, covariances):
         self.pi, self.means, self.covariances = pi, means, covariances
 
-    def usePlotingTools(self, iteration):
+    def usePlotingTools(self, iteration, bool):
         """Plot the EM output in 2 dimensions """
-        twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots, self.pi)
+        try:
+            if iteration % 4:
+                if bool:
+                    twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,
+                                             self.pi, self.plot_name)
+                else:
+                    twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,
+                                             self.pi)
+        except np.linalg.LinAlgError:
+            print("covariance is not Inversable or not singular")
 
     def savePlotAsGif(self):
         """Convert all saved plots into one GIF that shows what tranpired on the data in real time"""
         # Save the plots as a GIF
         dpi = 100
         plots = []
-        for i, fig in enumerate(self.plots):
-            if not os.path.exists('temp'):
-                os.makedirs('temp')
-
-            fig.savefig('temp/temp%d.png' % i, dpi=dpi)
-            plt.close(fig)
-            plots.append(imageio.imread('temp/temp%d.png' % i))
+        dpi = 100
         if not os.path.exists('Results'):
             os.makedirs('Results')
+
+        images = []
+        for filename in self.plots:
+            images.append(imageio.imread(filename))
         if self.plottingEnabled:
-            imageio.mimsave('Results/PlotOfClustures.gif', plots, fps=5)
+            imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
         self.deleteTempImages()
 
     def deleteTempImages(self):
         """Helper function that deletes all images created to create the GIF file"""
         for i, fig in enumerate(self.plots):
-            if os.path.exists('temp/temp%d.png' % i):
+            if os.path.exists('temp'):
                 # remove the file
-                os.remove('temp/temp%d.png' % i)
+                os.remove('temp')
+        self.plots = []
 
 
 # print_B = lambda x: print(f" Best:{len(x.object)} ,fittness: {x.fitness} ", end=" ")
@@ -318,11 +343,13 @@ print_time = lambda x: print(f"Time :  {x[0]}  ticks: {x[1]}")
 variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 
 if __name__ == '__main__':
-    n = 300
+    n = 100
     inputType = None
     inputDimentions = 2
-    max_iter = 100
-    number_ofClusters = 3
+    max_iter = 1000
+    number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods = algortithem(n, inputDimentions, max_iter,
-                                                          number_ofClusters).solve()
+    pi, means, covariances, log_likelihoods, n_input = algortithem(n, inputDimentions, max_iter,
+                                                                   number_ofClusters, plottingTools=True).solve()
+
+    print(covariances)

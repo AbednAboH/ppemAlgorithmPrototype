@@ -1,3 +1,5 @@
+import os
+
 import imageio as imageio
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,7 +101,7 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
             axs[i, j - 1].set_ylabel(f"Dimension {j + 1}")
     plt.show()
 
-def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi):
+def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,name=None):
     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
@@ -117,7 +119,16 @@ def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi)
     ax.set_xlim([x_min, x_max])
     ax.set_ylim([y_min, y_max])
     ax.set_title('Frame %d' % i)
-    plots.append(fig)
+    if not os.path.exists('temp'):
+        os.makedirs('temp')
+    if name is None:
+        fig.savefig('temp/temp%d.png' % i, dpi=200)
+        plt.close(fig)
+        plots.append('temp/temp%d.png' % i)
+    else:
+        fig.savefig(f'Results/{name}.png', dpi=200)
+        plt.close(fig)
+        plots.append(f'Results/{name}.png' )
 
 
 
