@@ -4,9 +4,8 @@ MAXMU = 5  # todo figure actual starting value
 import tenseal as ts
 
 # encryption_parameters
-scheme=ts.SCHEME_TYPE.BFV
-poly_modulus_degree=8192,
-plain_modulus=786433,
-coeff_mod_bit_sizes=[40, 21, 21, 21, 21, 21, 21, 40],
-encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC,
+scheme=ts.SCHEME_TYPE.CKKS
+poly_modulus_degree=8192
+coeff_mod_bit_sizes=[40, 21, 21, 21, 21, 21, 21, 40]
+encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC
 

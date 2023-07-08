@@ -2,12 +2,13 @@ import imageio as imageio
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-from EM import *
+from HelpingFunctions import *
 # from encryptions import EMAlgorithm
 from FastEM import algortithem
 from TenSEAL_encryption_unit import encryption
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
+
 
 #  we can use it in two ways
 #       1. either algo.solve() which calculates one iteration by default ,but also adds plotting
@@ -16,7 +17,7 @@ from sklearn.mixture import GaussianMixture
 class Partial_EM(algortithem):
     def __init__(self, n, inputDimentions: int = 2, max_iter: int = 1, number_of_clustures: int = 2, eps: float = 1e-5,
                  epsilonExceleration: bool = True,
-                 input: np.array = None, plottingTools: bool = False,plot_name=""):
+                 input: np.array = None, plottingTools: bool = False, plot_name=""):
         """
         Parameters:
             n:number of parameters.
@@ -30,14 +31,9 @@ class Partial_EM(algortithem):
 
           """
         super(Partial_EM, self).__init__(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
-                                         input, plottingTools,plot_name)
+                                         input, plottingTools, plot_name)
 
         # encryption unit for encrypting the data for each client
-        self.encryption_unit = None
-        # q from i to a
-
-
-
 
     def mStep_epsilon(self):
         """ calculate the sum of the responsibilities ,and the uppder side of the means equation meaning q_i,s,a* X_i then return them to the server"""
@@ -52,7 +48,7 @@ class Partial_EM(algortithem):
     def mStep_Covariance(self, means):
         """calculate the after you get the means from the server calculate the covariance matrix based on the means of all of the data """
         # step 2 when sending to the server !
-        self.means=means
+        self.means = means
         for j in range(self.k):
             self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
@@ -61,10 +57,6 @@ class Partial_EM(algortithem):
 
         # print("before", self.covariances)
         return self.covariances
-
-
-
-
 
 
 class Server(algortithem):
@@ -76,7 +68,8 @@ class Server(algortithem):
     def __init__(self, n=200, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 0.00001,
                  epsilonExceleration: bool = True,
-                 input: np.array = None, plottingTools: bool = False, clients: int = 2,plot_name=""):
+                 input: np.array = None, plottingTools: bool = False, clients: int = 2, plot_name="",
+                 Partial_em=Partial_EM):
         """
         Parameters:
             n :number of parameters.
@@ -91,13 +84,11 @@ class Server(algortithem):
 
         """
 
-        super(Server, self).__init__(n, inputDimentions, max_iter, number_of_clustures, eps,
-                                     epsilonExceleration,
-                                     input, plottingTools,plot_name)
+        super(Server, self).__init__(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration, input,
+                                     plottingTools, plot_name)
         self.clients = []
+        self.partialEM = Partial_em
         self.init_clients(clients)
-        # for future use :
-        self.encryptionUnit = encryption
 
     def init_clients(self, num_clients):
         """ initiate the clients code the Partial EM code"""
@@ -105,11 +96,12 @@ class Server(algortithem):
         input_for_each_client = int(self.n / num_clients)
         np.random.shuffle(self.n_inputs)  # Shuffle the array randomly
         split_indices = np.array_split(self.n_inputs, num_clients)  # Split the indices into n sub-arrays
-        print(len(self.n_inputs))
-
+        # print(len(self.n_inputs))
 
         for i in range(num_clients):
-            self.clients.append(Partial_EM(input_for_each_client, self.inputDimentions, 1, self.k,input=split_indices[i],plot_name=self.plot_name))
+            self.clients.append(
+                self.partialEM(input_for_each_client, self.inputDimentions, 1, self.k, input=split_indices[i],
+                               plot_name=self.plot_name))
             # todo:for now, in case you change the way the input is created you have to change these lines or delete them
             # if i == 0:
             #     self.n_inputs = self.clients[i]
@@ -136,7 +128,7 @@ class Server(algortithem):
         # step 1
         # ____________________________________________________________
         all_qisa, means, covariances, num_samples = [], [], [], []
-        oldMeans=self.means.copy()
+        oldMeans = self.means.copy()
         # for each client do its own m step
         for client in self.clients:
             qisa, mean, numberOfSample = client.mStep_epsilon()
@@ -147,7 +139,6 @@ class Server(algortithem):
         # ____________________________________________________________
         # step 2
         # ____________________________________________________________
-
 
         sum_q_i_s_a = np.sum(all_qisa, axis=0)
         q_i_s_a_DOT_Xi = np.sum(means, axis=0)
@@ -160,9 +151,8 @@ class Server(algortithem):
         # update Pi
         self.pi = sum_q_i_s_a / np.sum(num_samples)
 
-
         # sum of clients q_(i,s,a)*Xi/sum of clients q_(i,s,a)
-        self.means = q_i_s_a_DOT_Xi / sum_q_i_s_a[:,np.newaxis]
+        self.means = q_i_s_a_DOT_Xi / sum_q_i_s_a[:, np.newaxis]
 
         # ____________________________________________________________
         # step 4
@@ -192,28 +182,31 @@ class Server(algortithem):
         likelyhood = [client.getLikelyhood() for client in self.clients]
         self.log_likelihoods.append(np.sum(likelyhood))
 
-
-
         # todo update means on all
+
     def stopage(self, i):
         if i > 1:
             print(np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]))
+        return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps and \
+                       self.log_likelihoods[-1] - self.log_likelihoods[-2] >= 0 else False
 
-        return True if i>1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps and self.log_likelihoods[-1] - self.log_likelihoods[-2]>=0 else False
+
+
 if __name__ == '__main__':
     for n in range(100, 10000, 100):
-        for k in range (2,4):
+        for k in range(2, 4):
             if n % k == 0:
                 server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
                                 plot_name="n300_k3_c1")
-                pi, means, covariances, log_likelihoods, n_input = server.solve()
-
-                for clients in range(2,10,4):
-                    if n%clients==0 and n/k>20:
-                        print("\n\n\n","------"*10)
-                        server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=clients,
-                                        plot_name=f"n{n}_k{k}_c{clients}",input=n_input)
-                        server.solve()
-
-
-
+                pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+                writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+                          f"Results/MultiPartyEM/PPEM_n{n}_k3_c1")
+                for clients in range(2, 10, 4):
+                    if n % clients == 0 and n / k > 20:
+                        print("\n\n\n", "------" * 10)
+                        server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
+                                        clients=clients,
+                                        plot_name=f"n{n}_k{k}_c{clients}", input=n_input)
+                        pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+                        writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+                                  f"Results/MultiPartyEM/PPEM_n{n}_k{k}_c{clients}")

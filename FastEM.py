@@ -5,7 +5,7 @@ import time
 import imageio
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
-from EM import twoDimentionsRepresentation, twoDimentionalGifCreator
+from HelpingFunctions import twoDimentionsRepresentation, twoDimentionalGifCreator
 import numpy as np
 
 
@@ -40,8 +40,8 @@ class algortithem:
     """
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
-                 eps: float = 1e-4, epsilonExceleration: bool = True,
-                 input: np.array = None, plottingTools: bool = False, plot_name=""):
+                 eps: float = 1e-4, epsilonExceleration: bool = True, input: np.array = None,
+                 plottingTools: bool = False, plot_name=""):
 
         """
         Initiate the algorithm's parameters
@@ -55,6 +55,7 @@ class algortithem:
             epsilonExceleration:a boolean that enables/disables convergence with epsilons aid
             eps:the value of epsilon that helps with the convergence criteria
             plottingTools:if True the algorithm plots a gif of the EM process of the algorithm
+            :param Partial_EM:
 
         """
 
@@ -69,8 +70,8 @@ class algortithem:
         self.tick = 0
         self.sol_time = 0
         self.max_iter = max_iter
-        self.output = []
-        self.output2 = []
+        self.ticks = []
+        self.time_line = []
         self.iter = []
 
         # Plots to be presented
@@ -102,23 +103,25 @@ class algortithem:
 
         self.plot_name = plot_name
 
+
+
     def create_input(self):
         """
         Creates input based on the number of samples and the number of clusters(k)
         :return: np.array with all the samples created
         """
-        array = None
+        array = []
         n_rows = int(self.numberOfSamples / self.k)
         n_cols = self.inputDimentions
         for i in range(self.k):
             if i == 0:
                 array = np.random.randn(n_rows, n_cols)
-                print("\n",i,len(array))
+                # print("\n",i,len(array))
 
             else:
                 new_array = np.random.randn(n_rows, n_cols) + i * 5
                 array = np.vstack((array, new_array))
-                print("\n",i,len(array))
+                # print("\n",i,len(array))
 
         # self.n = n_rows * n_cols
 
@@ -227,6 +230,8 @@ class algortithem:
         """calculates The time it took for an iteration to complete"""
         runtime = time.perf_counter() - self.sol_time
         clockticks = time.time() - self.tick
+        self.time_line.append(runtime)
+        self.ticks.append(clockticks)
 
         print_time((runtime, clockticks))
 
@@ -288,7 +293,7 @@ class algortithem:
                 self.usePlotingTools(i, True)
                 break
 
-        return self.pi, self.means, self.covariances, self.log_likelihoods, self.n_inputs
+        return self.pi, self.means, self.covariances, self.log_likelihoods, self.n_inputs,self.ticks,self.time_line
 
     def update_paramters(self, pi, means, covariances):
         self.pi, self.means, self.covariances = pi, means, covariances
@@ -349,7 +354,7 @@ if __name__ == '__main__':
     max_iter = 1000
     number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods, n_input = algortithem(n, inputDimentions, max_iter,
-                                                                   number_ofClusters, plottingTools=True).solve()
+    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(n, inputDimentions, max_iter, number_ofClusters,
+                                                                   plottingTools=True).solve()
 
     print(covariances)

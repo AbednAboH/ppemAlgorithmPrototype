@@ -2,7 +2,7 @@ import imageio as imageio
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-from EM import *
+from HelpingFunctions import *
 # from encryptions import EMAlgorithm
 from FastEM import algortithem
 import tenseal as ts
@@ -14,12 +14,11 @@ For the parameters of the encryption model you can refer to https://github.com/O
 # todo: maybe add gradiant deccent for epsilons value
 class PPEM(algortithem):
     def __init__(self, n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None):
-        super(PPEM, self).__init__(n, inputType, inputDimentions, max_iter, number_of_clustures, eps=1e-4, input=None)
+        super(PPEM, self).__init__(n, inputType, inputDimentions, max_iter, number_of_clustures, input=None)
         # create TenSEALContext
         self.context = ts.context(
             scheme=scheme,
             poly_modulus_degree=poly_modulus_degree,
-            plain_modulus=plain_modulus,
             coeff_mod_bit_sizes=coeff_mod_bit_sizes,
             encryption_type=encryption_type,)
         # scale of ciphertext to use might not work on BFV model , surly works on CKKS

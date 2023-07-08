@@ -72,3 +72,11 @@
     added more documentation to the code , and some modificiations on the Partial EM and Server(Full EM) algorithms , still not finished for the day ,
     and the full algorithm should be done by tommorow or the day after that 
     also we have started to create the finished version of the algorithm and with proofs in the paper that we are working on 
+
+# 6.7.23 
+   Partial EM and full em algorithms are done , did a test that check different parameters:
+        1.number of clusters 
+        2.number of parties 
+        3.length of input 
+        4.still haven't played with dimensions 
+   

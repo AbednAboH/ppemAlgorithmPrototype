@@ -1,3 +1,4 @@
+import csv
 import os
 
 import imageio as imageio
@@ -130,7 +131,26 @@ def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,
         plt.close(fig)
         plots.append(f'Results/{name}.png' )
 
+def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihoods:list, n_input:list,ticks:list,time_line:list,FileName:str):
 
+    # Combine the data into a list of rows
+    rows = [
+        ['pi'] + pi.tolist(),
+        ['means'] + means.tolist(),
+        ['covariances'] + [c.tolist() for c in covariances],
+        ['log_likelihoods'] + log_likelihoods,
+        ['n_input'] + [row.tolist() for row in n_input],
+        ['ticks'] + ticks,
+        ['time_line'] + time_line
+    ]
+
+    # Write the rows to a CSV file
+    directory = os.path.dirname(FileName)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(FileName, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(rows)
 
 if __name__ == '__main__':
     # Set number of clusters
