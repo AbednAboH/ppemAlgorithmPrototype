@@ -78,5 +78,6 @@
         1.number of clusters 
         2.number of parties 
         3.length of input 
-        4.still haven't played with dimensions 
-   
+        4.still haven't played with dimensions
+# 8.7.23 
+    PPEM algorithm was emplemented easily do to the last step that we made , the only thing that we had to chage was adding encryption before sending the data from the clients side ! amazing progression
