@@ -179,7 +179,7 @@ if __name__ == '__main__':
                 server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
                                 plot_name=f"PPEM_n{n}_k3_c1")
                 pi, means, covariances, log_likelihoods, n_input,ticks,time_line = server.solve()
-                writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k3_c1")
+                writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k3_c1.csv")
                 for clients in range(2, 10, 4):
                     if n % clients == 0 and n / k > 20:
                         print("\n\n\n", "------" * 10)
@@ -187,4 +187,4 @@ if __name__ == '__main__':
                                         clients=clients,
                                         plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
                         pi, means, covariances, log_likelihoods, n_input,ticks,time_line=server.solve()
-                        writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"PPEM_n{n}_k{k}_c{clients}")
+                        writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}.csv")
