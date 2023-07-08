@@ -33,11 +33,15 @@ class Partial_PPEM(Partial_EM):
     def mStep_Covariance(self, means,qisa=None,n=None):
         """calculate the after you get the means from the server calculate the covariance matrix based on the means of all of the data """
         # step 2 when sending to the server !
+        oldMeans=self.means.copy()
         self.means =self.encryption_unit.decrypt(means)
         self.qisaEncrypted=self.encryption_unit.decrypt(qisa)
         self.means=self.means/self.qisaEncrypted[:, np.newaxis]
         self.pi=self.qisaEncrypted/self.encryption_unit.decrypt(n)[0]
         self.covariances=super(Partial_PPEM, self).mStep_Covariance(self.means)
+
+        for i in range(self.k):
+            self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
         return self.encryption_unit.CKKS_encrypt(self.covariances)
 
     def m_step_actualCovariances(self,covariances):
@@ -160,6 +164,13 @@ class PPserver(Server):
 
         likelyhood = [client.getLikelyhood() for client in self.clients]
         self.log_likelihoods.append(np.sum(likelyhood))
+
+    def usePlotingTools(self, iteration, bool):
+        "For graph drawing functionality"
+        self.covariances=self.clients[0].covariances
+        self.means=self.clients[0].means
+        self.pi=self.clients[0].pi
+        super(PPserver, self).usePlotingTools(iteration,bool)
 
 if __name__ == '__main__':
     for n in range(100, 10000, 100):

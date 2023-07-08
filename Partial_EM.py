@@ -157,9 +157,8 @@ class Server(algortithem):
         # ____________________________________________________________
         # step 4
         # ____________________________________________________________
-        # todo add epsilon emplementation for faster convergence
-        for i in range(self.k):
-            self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
+
+
         for client in self.clients:
             covariances.append(client.mStep_Covariance(self.means))
 
@@ -171,7 +170,9 @@ class Server(algortithem):
         # ____________________________________________________________
         # step 5
         # ____________________________________________________________
-
+        #* exceleration
+        for i in range(self.k):
+            self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
         for client in self.clients:
             client.update_paramters(self.pi, self.means, self.covariances)
             client.LogLikelyhood()

@@ -127,9 +127,9 @@ def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,
         plt.close(fig)
         plots.append('temp/temp%d.png' % i)
     else:
-        fig.savefig(f'Results/{name}.png', dpi=200)
+        fig.savefig(f'{name}.png', dpi=200)
         plt.close(fig)
-        plots.append(f'Results/{name}.png' )
+        plots.append(f'{name}.png' )
 
 def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihoods:list, n_input:list,ticks:list,time_line:list,FileName:str):
 
@@ -145,7 +145,12 @@ def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihood
     ]
 
     # Write the rows to a CSV file
-    directory = os.path.dirname(FileName)
+    second=FileName.split("/")
+    second.pop(len(second)-1)
+    sting=""
+    for name in second:
+        sting+=name+"/"
+    directory = os.path.dirname(sting)
     if not os.path.exists(directory):
         os.makedirs(directory)
     with open(FileName, 'w', newline='') as csvfile:
