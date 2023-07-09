@@ -165,7 +165,7 @@ class PPserver(Server):
         # ____________________________________________________________77
 
         likelyhood = [client.getLikelyhood() for client in self.clients]
-        self.log_likelihoods.append(np.sum(likelyhood))
+        self.log_likelihoods.append(np.sum(likelyhood)/self.n)
 
     def usePlotingTools(self, iteration, bool):
         "For graph drawing functionality"
