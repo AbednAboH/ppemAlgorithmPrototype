@@ -7,9 +7,10 @@ class encryption:
             scheme=scheme,
             poly_modulus_degree=poly_modulus_degree,
             coeff_mod_bit_sizes=coeff_mod_bit_sizes,
-            encryption_type=encryption_type, )
+             )
         # scale of ciphertext to use might not work on BFV model , surly works on CKKS
-        self.context.global_scale = 2 ** 40
+        self.context.global_scale = 2**28
+        self.context.auto_rescale=True
         # dot product key needed for the dot operation
         self.context.generate_galois_keys()
         self.context.generate_relin_keys()

@@ -73,7 +73,8 @@ class algortithem:
         self.ticks = []
         self.time_line = []
         self.iter = []
-
+        self.log_covariances=[]
+        self.log_means=[]
         # Plots to be presented
         self.plots = []
 
@@ -250,7 +251,8 @@ class algortithem:
             list of 3 arrays and length of input, Pi,Means,Covariances,number of samples
         """
 
-        if self.plottingEnabled: self.usePlotingTools(i, self.plot_name == "")
+        if self.plottingEnabled:
+            self.usePlotingTools(i, self.plot_name == "")
         self.eStep()
         return self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
 
@@ -283,17 +285,21 @@ class algortithem:
 
             self.iteration += 1
             self.algo(i)
-
             self.iter.append(i)
-            self.handle_prints_time()
+            # self.handle_prints_time()
             if self.stopage(i) or i == self.max_iter - 1:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
-                self.savePlotAsGif()
-                self.usePlotingTools(i, True)
+                if self.plottingEnabled:
+                    self.savePlotAsGif()
+                twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, self.iteration, self.plots,
+                                             self.pi, self.plot_name)
                 break
 
         return self.pi, self.means, self.covariances, self.log_likelihoods, self.n_inputs,self.ticks,self.time_line
+    def log_parameters(self,means,covariance):
+        self.log_covariances.append(self.covariances)
+        self.log_means.append(self.means)
 
     def update_paramters(self, pi, means, covariances):
         self.pi, self.means, self.covariances = pi, means, covariances
@@ -303,6 +309,7 @@ class algortithem:
         try:
             if iteration % 4:
                 if bool:
+                    print("twoDimentionalGif")
                     twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,
                                              self.pi, self.plot_name)
                 else:
@@ -317,14 +324,14 @@ class algortithem:
         dpi = 100
         plots = []
         dpi = 100
-        if not os.path.exists('Results'):
-            os.makedirs('Results')
+        if not os.path.exists(self.plot_name):
+            os.makedirs(self.plot_name)
 
         images = []
         for filename in self.plots:
             images.append(imageio.imread(filename))
         if self.plottingEnabled:
-            imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
+            imageio.mimsave(fr'{self.plot_name}.gif', images, duration=200)
         self.deleteTempImages()
 
     def deleteTempImages(self):
@@ -354,7 +361,7 @@ if __name__ == '__main__':
     max_iter = 1000
     number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(7200, 2, 1000, 3,
-                                                                   plottingTools=True,plot_name="7200").solve()
+    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(3800, 2, 1000, 2,
+                                                                   plottingTools=True,plot_name="7200",eps=10**-20).solve()
 
     print(covariances)

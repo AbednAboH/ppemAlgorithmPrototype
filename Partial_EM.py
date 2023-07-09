@@ -10,10 +10,7 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 
 
-#  we can use it in two ways
-#       1. either algo.solve() which calculates one iteration by default ,but also adds plotting
-#       2. or just use the e/m step of each Partial EM algorithm in the server
-# we went with option 2 for now , might change it in the future , but both are present in case we want to use either of them
+
 class Partial_EM(algortithem):
     def __init__(self, n, inputDimentions: int = 2, max_iter: int = 1, number_of_clustures: int = 2, eps: float = 1e-5,
                  epsilonExceleration: bool = True,
@@ -33,32 +30,31 @@ class Partial_EM(algortithem):
         super(Partial_EM, self).__init__(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
                                          input, plottingTools, plot_name)
 
-        # encryption unit for encrypting the data for each client
-
+        self.qisa = None
     def mStep_epsilon(self):
         """ calculate the sum of the responsibilities ,and the uppder side of the means equation meaning q_i,s,a* X_i then return them to the server"""
         q_i_s_a = np.sum(self.responisbilities, axis=0)
-        oldMeans = self.means.copy()
-
         for j in range(self.k):
             self.means[j] = np.sum(self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0)
-        # todo check: checked , the same as it should be
-        return q_i_s_a, self.means, self.numberOfSamples
+        return q_i_s_a, self.means
 
-    def mStep_Covariance(self, means):
+    def mStep_Covariance(self, means,qisa=None,n_=None):
         """calculate the after you get the means from the server calculate the covariance matrix based on the means of all of the data """
         # step 2 when sending to the server !
-        self.means = means
+        # calclulate means
+        self.means = means / qisa[:, np.newaxis]
+        self.pi=qisa/n_
+        self.qisa=qisa
         for j in range(self.k):
             self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
                 x = self.n_inputs[n, :] - self.means[j, :]
                 self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
 
-        # print("before", self.covariances)
         return self.covariances
 
-
+    def m_step_actualCovariances(self, covariances):
+        self.covariances=covariances/ self.qisa[:, np.newaxis, np.newaxis]
 class Server(algortithem):
     """
       Server EM Processor
@@ -89,25 +85,19 @@ class Server(algortithem):
         self.clients = []
         self.partialEM = Partial_em
         self.init_clients(clients)
-
+    def algo(self,i=0):
+        super(Server, self).algo(i)
     def init_clients(self, num_clients):
         """ initiate the clients code the Partial EM code"""
-        # 0todo create a selection method to choose data for each client for now each client creates his own data
+        # todo create a selection method to choose data for each client for now each client creates his own data
         input_for_each_client = int(self.n / num_clients)
         np.random.shuffle(self.n_inputs)  # Shuffle the array randomly
         split_indices = np.array_split(self.n_inputs, num_clients)  # Split the indices into n sub-arrays
-        # print(len(self.n_inputs))
 
         for i in range(num_clients):
             self.clients.append(
                 self.partialEM(input_for_each_client, self.inputDimentions, 1, self.k, input=split_indices[i],
                                plot_name=self.plot_name))
-            # todo:for now, in case you change the way the input is created you have to change these lines or delete them
-            # if i == 0:
-            #     self.n_inputs = self.clients[i]
-            # else:
-            #     self.n_inputs = np.vstack((self.n_inputs, self.clients[i]))
-
     def eStep(self):
         """send instructions to the clients to calculate their own e-step on their data"""
         for client in self.clients:
@@ -124,90 +114,75 @@ class Server(algortithem):
          6. send the parameters back to the clients and calculate the log likelyhood in each clients enviroment
          7. get the likelyhood function from the clients and check for convergence
         """
+
+        # step 1+2
         # ____________________________________________________________
-        # step 1
-        # ____________________________________________________________
-        all_qisa, means, covariances, num_samples = [], [], [], []
-        oldMeans = self.means.copy()
-        # for each client do its own m step
+        covariances, q_i_s_a_DOT_Xi, sum_q_i_s_a = self.get_means_qisa_s()
+        # step 3+4
         for client in self.clients:
-            qisa, mean, numberOfSample = client.mStep_epsilon()
-            all_qisa.append(qisa)
-            means.append(mean)
-            num_samples.append(numberOfSample)
-
-        # ____________________________________________________________
-        # step 2
-        # ____________________________________________________________
-
-        sum_q_i_s_a = np.sum(all_qisa, axis=0)
-        q_i_s_a_DOT_Xi = np.sum(means, axis=0)
-        # q_i_s_a_DOT_Xi_Minus_miu_squared = np.sum(covariances, axis=0)
-
-        # ____________________________________________________________
-        # step 1
-        # ____________________________________________________________
-
-        # update Pi
-        self.pi = sum_q_i_s_a / np.sum(num_samples)
-
-        # sum of clients q_(i,s,a)*Xi/sum of clients q_(i,s,a)
-        self.means = q_i_s_a_DOT_Xi / sum_q_i_s_a[:, np.newaxis]
-
-        # ____________________________________________________________
-        # step 4
-        # ____________________________________________________________
-
-
-        for client in self.clients:
-            covariances.append(client.mStep_Covariance(self.means))
-
-        q_i_s_a_DOT_Xi_Minus_miu_squared = np.sum(covariances, axis=0)
-        # q_(i, s, a)(Xi-miu_s)(Xi-miu_s)^T /sum of q_(i,s,a)
-        self.covariances = q_i_s_a_DOT_Xi_Minus_miu_squared
-        for j in range(self.k):
-            self.covariances[j] /= sum_q_i_s_a[j]
-        # ____________________________________________________________
+            covariances.append(client.mStep_Covariance(q_i_s_a_DOT_Xi,sum_q_i_s_a,self.n))
         # step 5
-        # ____________________________________________________________
-        #* exceleration
-        for i in range(self.k):
-            self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
+        q_i_s_a_DOT_Xi_Minus_miu_squared = np.sum(covariances, axis=0)
+        self.means=q_i_s_a_DOT_Xi/sum_q_i_s_a[:,np.newaxis]
+
+        self.covariances=q_i_s_a_DOT_Xi_Minus_miu_squared/sum_q_i_s_a[:,np.newaxis,np.newaxis]
+        # calculate actual cuvariance
         for client in self.clients:
-            client.update_paramters(self.pi, self.means, self.covariances)
+            # client.m_step_actualCovariances(q_i_s_a_DOT_Xi_Minus_miu_squared)
+            self.update_paramters(sum_q_i_s_a/self.n,self.means,self.covariances)
             client.LogLikelyhood()
+
         # ____________________________________________________________
         # step 6
         # ____________________________________________________________77
+        # * exceleration
+        # for i in range(self.k):
+        #     self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
 
         likelyhood = [client.getLikelyhood() for client in self.clients]
         self.log_likelihoods.append(np.sum(likelyhood)/self.n)
 
-        # todo update means on all
+        self.log_parameters(self.means.tolist(),self.covariances.tolist())
+
+
+
+    def get_means_qisa_s(self):
+        all_qisa, means, covariances = [], [], []
+        # for each client do its own m step
+        for client in self.clients:
+            qisa, mean = client.mStep_epsilon()
+            all_qisa.append(qisa)
+            means.append(mean)
+        # step 2
+        # ____________________________________________________________
+        sum_q_i_s_a = np.sum(all_qisa, axis=0)
+        q_i_s_a_DOT_Xi = np.sum(means, axis=0)
+        return covariances, q_i_s_a_DOT_Xi, sum_q_i_s_a
 
     def stopage(self, i):
-        if i > 1:
-            print(np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]))
+        # if i > 1:
+        #     print(np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]))
         return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps and \
                        self.log_likelihoods[-1] - self.log_likelihoods[-2] >= 0 else False
 
 
 
 if __name__ == '__main__':
-    for n in range(100, 10000, 100):
-        for k in range(2, 4):
-            if n % k == 0:
-                server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
-                                plot_name=f"Results/MultiPartyEM/EM_n{n}_k{k}_c1")
-                pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
-                writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
-                          f"Results/MultiPartyEM/EM_n{n}_k3_c1")
-                for clients in range(2, 10, 4):
-                    if n % clients == 0 and n / k > 20:
-                        print("\n\n\n", "------" * 10)
-                        server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
-                                        clients=clients,
-                                        plot_name=f"n{n}_k{k}_c{clients}", input=n_input)
-                        pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
-                        writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
-                                  f"Results/MultiPartyEM/EM_n{n}_k{k}_c{clients}")
+    # for n in range(100, 10000, 100):
+    #     for k in range(2, 4):
+    #         if n % k == 0:
+    #             server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
+    #                             plot_name=f"Results/MultiPartyEM/EM_n{n}_k{k}_c1")
+    #             pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+    #             writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+    #                       f"Results/MultiPartyEM/EM_n{n}_k3_c1")
+    #             for clients in range(2, 10, 4):
+    #                 if n % clients == 0 and n / k > 20:
+    #                     print("\n\n\n", "------" * 10)
+    #                     server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.00000001,
+    #                                     clients=clients,
+    #                                     plot_name=f"n{n}_k{k}_c{clients}", input=n_input)
+    #                     pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+    #                     writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+    #                               f"Results/MultiPartyEM/EM_n{n}_k{k}_c{clients}")
+    pass

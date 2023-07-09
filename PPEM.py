@@ -22,36 +22,31 @@ class Partial_PPEM(Partial_EM):
                                          input, plottingTools,plot_name)
         # encryption unit for encrypting the data for each client
         self.encryption_unit = encrypt
-        self.qisaEncrypted=None
+        self.qisa=None
+
     def update_encryption(self,context):
         self.encryption_unit=context
     def mStep_epsilon(self):
         """ calculate the sum of the responsibilities ,and the uppder side of the means equation meaning q_i,s,a* X_i then return them to the server"""
-        q_i_s_a, self.means, self.numberOfSamples=super(Partial_PPEM, self).mStep_epsilon()
+        q_i_s_a, self.means=super(Partial_PPEM, self).mStep_epsilon()
         return self.encryption_unit.CKKS_encrypt(q_i_s_a),self.encryption_unit.CKKS_encrypt(self.means)
 
     def mStep_Covariance(self, means,qisa=None,n=None):
         """calculate the after you get the means from the server calculate the covariance matrix based on the means of all of the data """
         # step 2 when sending to the server !
-        oldMeans=self.means.copy()
         self.means =self.encryption_unit.decrypt(means)
-        self.qisaEncrypted=self.encryption_unit.decrypt(qisa)
-        # calclulate means
-        self.means=self.means/self.qisaEncrypted[:, np.newaxis]
-        #calculate pi
-        self.pi=self.qisaEncrypted/self.encryption_unit.decrypt(n)[0]
-        # sum of the qisa_(x_i-miu_s)^2
-        self.covariances=super(Partial_PPEM, self).mStep_Covariance(self.means)
-        # epsilon step:
-        for i in range(self.k):
-            self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
-            # sum of the qisa_(x_i-miu_s)^2 encrypted
+        self.qisa=self.encryption_unit.decrypt(qisa)
+
+        super(Partial_PPEM, self).mStep_Covariance(self.encryption_unit.decrypt(means),
+                                                   self.encryption_unit.decrypt(qisa),
+                                                   self.encryption_unit.decrypt(n))
+
         return self.encryption_unit.CKKS_encrypt(self.covariances)
 
     def m_step_actualCovariances(self,covariances):
         # covariances of all the data :
+        super(Partial_PPEM, self).m_step_actualCovariances(self.encryption_unit.decrypt(covariances))
 
-        self.covariances=self.encryption_unit.decrypt(covariances)/self.qisaEncrypted[:, np.newaxis,np.newaxis]
 
 class PPserver(Server):
     """
@@ -91,81 +86,10 @@ class PPserver(Server):
         super(PPserver, self).algo(i)
 
     def mStep_epsilon(self):
-        """
-         M step
-         1. apply mstep for each client and get from each client the qisa,and the sum of the upper part of the means equation
-         2. calculate sum_q_i_s_a ,q_i_s_a_DOT_Xi (the upper parts of the means and Pi's  equations )
-         3. update the Pi for all the data and the means of all the data
-         4. send the means back to the clients and get the upper portion of the covariance equation
-         5. calculate the new covariance matrices
-         6. send the parameters back to the clients and calculate the log likelyhood in each clients enviroment
-         7. get the likelyhood function from the clients and check for convergence
-        """
-        # ____________________________________________________________
-        # step 1
-        # ____________________________________________________________
-        all_qisa, means, covariances, num_samples = [], [], [], []
-        oldMeans = self.means.copy()
-
-        # for each client do its own m step
-        for client in self.clients:
-            qisa, mean = client.mStep_epsilon()
-            all_qisa.append(qisa)
-            means.append(mean)
-
-        # ____________________________________________________________
-        # step 2
-        # ____________________________________________________________
-
-        for index,qisa in  enumerate(all_qisa):
-            if index==0:
-                sum_q_i_s_a=qisa
-            else:
-                sum_q_i_s_a=sum_q_i_s_a+qisa
-
-        for index,means in  enumerate(means):
-            if index==0:
-                q_i_s_a_DOT_Xi=means
-            else:
-                q_i_s_a_DOT_Xi=q_i_s_a_DOT_Xi+means
+        self.n=self.encryptor.CKKS_encrypt(self.n)
+        super(PPserver, self).mStep_epsilon()
 
 
-        # ____________________________________________________________
-        # step 1
-        # ____________________________________________________________
-
-        # update Pi
-        self.pi = sum_q_i_s_a.mul(1/ self.n)
-
-        self.means = q_i_s_a_DOT_Xi
-
-        # ____________________________________________________________
-        # step 4
-        # ____________________________________________________________
-
-        # todo add epsilon emplementation for faster convergence
-
-        for client in self.clients:
-            covariances.append(client.mStep_Covariance(self.means,sum_q_i_s_a,
-                                                       self.encryptor.CKKS_encrypt([self.n])))
-
-        q_i_s_a_DOT_Xi_Minus_miu_squared = np.sum(covariances, axis=0)
-        # q_(i, s, a)(Xi-miu_s)(Xi-miu_s)^T /sum of q_(i,s,a)
-        self.covariances = q_i_s_a_DOT_Xi_Minus_miu_squared
-
-        # ____________________________________________________________
-        # step 5
-        # ____________________________________________________________
-
-        for client in self.clients:
-            client.m_step_actualCovariances(self.covariances)
-            client.LogLikelyhood()
-        # ____________________________________________________________
-        # step 6
-        # ____________________________________________________________77
-
-        likelyhood = [client.getLikelyhood() for client in self.clients]
-        self.log_likelihoods.append(np.sum(likelyhood)/self.n)
 
     def usePlotingTools(self, iteration, bool):
         "For graph drawing functionality"
@@ -178,14 +102,14 @@ if __name__ == '__main__':
     for n in range(100, 10000, 100):
         for k in range(2, 4):
             if n % k == 0:
-                server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
+                server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=True, eps=0.0001, clients=1,
                                 plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c1")
                 pi, means, covariances, log_likelihoods, n_input,ticks,time_line = server.solve()
                 writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k3_c1.csv")
                 for clients in range(2, 10, 4):
                     if n % clients == 0 and n / k > 20:
                         print("\n\n\n", "------" * 10)
-                        server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
+                        server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=True, eps=0.0001,
                                         clients=clients,
                                         plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
                         pi, means, covariances, log_likelihoods, n_input,ticks,time_line=server.solve()

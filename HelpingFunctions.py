@@ -104,6 +104,7 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
     plt.show()
 
 def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,name=None):
+    print("two dimentional")
     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
@@ -121,13 +122,26 @@ def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,
     ax.set_xlim([x_min, x_max])
     ax.set_ylim([y_min, y_max])
     ax.set_title('Frame %d' % i)
+
     if not os.path.exists('temp'):
         os.makedirs('temp')
+    print("temp should be checked")
+
     if name is None:
         fig.savefig('temp/temp%d.png' % i, dpi=200)
         plt.close(fig)
         plots.append('temp/temp%d.png' % i)
+        print("hello")
     else:
+        print("ELSE")
+        name2=name.split('/')
+        # name2.remove(name[-1])
+        string=""
+        for n in name2:
+            string+=n+'/'
+        if not os.path.exists(string):
+            os.makedirs(string)
+        print(string)
         fig.savefig(f'{name}.png', dpi=200)
         plt.close(fig)
         plots.append(f'{name}.png' )
@@ -157,6 +171,24 @@ def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihood
     with open(FileName, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)
+def debug_log(all_mean, all_covariances, fileName):
+    # Combine the data into a list of columns
+    columns = [['covariances'] + ['means']]
+    columns.extend([[c, m] for c, m in zip(all_covariances, all_mean)])
+
+    # Write the columns to a CSV file
+    second = fileName.split("/")
+    second.pop(len(second) - 1)
+    sting = ""
+    for name in second:
+        sting += name + "/"
+    directory = os.path.dirname(sting)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(fileName, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(zip(*columns))
+
 
 def plot_log_likelihood_from_csv(FileName, saveFileName,fileName):
     iterations = []
