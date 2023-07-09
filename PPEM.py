@@ -36,15 +36,21 @@ class Partial_PPEM(Partial_EM):
         oldMeans=self.means.copy()
         self.means =self.encryption_unit.decrypt(means)
         self.qisaEncrypted=self.encryption_unit.decrypt(qisa)
+        # calclulate means
         self.means=self.means/self.qisaEncrypted[:, np.newaxis]
+        #calculate pi
         self.pi=self.qisaEncrypted/self.encryption_unit.decrypt(n)[0]
+        # sum of the qisa_(x_i-miu_s)^2
         self.covariances=super(Partial_PPEM, self).mStep_Covariance(self.means)
-
+        # epsilon step:
         for i in range(self.k):
             self.means[i] = self.eps * oldMeans[i] + (1 - self.eps) * self.means[i]
+            # sum of the qisa_(x_i-miu_s)^2 encrypted
         return self.encryption_unit.CKKS_encrypt(self.covariances)
 
     def m_step_actualCovariances(self,covariances):
+        # covariances of all the data :
+
         self.covariances=self.encryption_unit.decrypt(covariances)/self.qisaEncrypted[:, np.newaxis,np.newaxis]
 
 class PPserver(Server):
@@ -123,10 +129,6 @@ class PPserver(Server):
             else:
                 q_i_s_a_DOT_Xi=q_i_s_a_DOT_Xi+means
 
-        # sum_q_i_s_a = np.sum(all_qisa, axis=0)
-        # sum_q_i_s_a
-        # q_i_s_a_DOT_Xi = np.sum(means, axis=0)
-        # q_i_s_a_DOT_Xi_Minus_miu_squared = np.sum(covariances, axis=0)
 
         # ____________________________________________________________
         # step 1
@@ -177,13 +179,13 @@ if __name__ == '__main__':
         for k in range(2, 4):
             if n % k == 0:
                 server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
-                                plot_name=f"PPEM_n{n}_k3_c1")
+                                plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c1")
                 pi, means, covariances, log_likelihoods, n_input,ticks,time_line = server.solve()
                 writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k3_c1.csv")
                 for clients in range(2, 10, 4):
                     if n % clients == 0 and n / k > 20:
                         print("\n\n\n", "------" * 10)
-                        server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
+                        server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
                                         clients=clients,
                                         plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
                         pi, means, covariances, log_likelihoods, n_input,ticks,time_line=server.solve()

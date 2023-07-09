@@ -354,7 +354,7 @@ if __name__ == '__main__':
     max_iter = 1000
     number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(n, inputDimentions, max_iter, number_ofClusters,
-                                                                   plottingTools=True).solve()
+    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(7200, 2, 1000, 3,
+                                                                   plottingTools=True,plot_name="7200").solve()
 
     print(covariances)

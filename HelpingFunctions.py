@@ -5,6 +5,7 @@ import imageio as imageio
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
+import glob
 
 
 def em_algorithm(data, num_clusters, max_iter=1000, eps=1e-4):
@@ -157,23 +158,69 @@ def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihood
         writer = csv.writer(csvfile)
         writer.writerows(rows)
 
+def plot_log_likelihood_from_csv(FileName, saveFileName,fileName):
+    iterations = []
+    log_likelihoods = []
+    print("hello",FileName)
+    # Read the CSV file
+    with open(FileName, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            if row[0] == 'log_likelihoods':
+                log_likelihoods = list(map(float, row[1:]))
+        newlog=[log_likelihoods[i]-log_likelihoods[i-1] for i in range(len(log_likelihoods)) ]
+    iterations=[i for i in range(len(newlog))]
+    # Plot the log-likelihood per iteration
+    plt.plot(iterations, newlog, marker='o')
+    plt.xlabel('Iteration')
+    plt.ylabel('Log-Likelihood')
+    plt.title('Log-Likelihood per Iteration'+fileName)
+
+    # Save the plot as an image file
+    plt.savefig(saveFileName)
+
+    # Close the plot to release resources (optional)
+    plt.close()
+
+def plot_log_likelihoods_from_csv_files(file_pattern, output_directory):
+    # Find all CSV files matching the pattern
+    csv_files = glob.glob(file_pattern)
+    # Iterate over the CSV files
+
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    for csv_file in csv_files:
+
+        # Extract the filename without the extension
+        filename = csv_file.split('.')[0]
+        filename=filename.split('/')
+        filename=filename[-1].split('\\')
+
+        print(filename[-1])
+        # Generate the output filename for the plot
+        output_filename = f"{output_directory}/{filename[-1]}_LogLikelyhood_plot.png"
+        # Call the plot_log_likelihood_from_csv function for each CSV file
+        plot_log_likelihood_from_csv(csv_file, output_filename,filename[-1])
+
 if __name__ == '__main__':
-    # Set number of clusters
-    numberOfClusters = 3
-    numberOfDimensions = 3
-
-    # Generate toy dataset with 3 clusters
-    np.random.seed(42)
-    data = np.vstack((np.random.randn(100, numberOfDimensions), np.random.randn(100, numberOfDimensions) + 5, np.random.randn(100, numberOfDimensions) + 10))
-
-    # Run EM algorithm
-    pi, means, covariances, log_likelihoods = em_algorithm(data, num_clusters=numberOfClusters)
-
-    # Create meshgrid for contour plot
-
-    twoDimentionsRepresentation(data,means[:,1:3],covariances[:,1:3,1:3],numberOfClusters)
-
-    twoDimentionsRepresentation(data,means[:,:2],covariances[:,:2,:2],numberOfClusters)
-
-    # Plot data points and contour plot
-    multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensions)
+    # """ Testing functions and algorithms """
+    # # Set number of clusters
+    # numberOfClusters = 3
+    # numberOfDimensions = 3
+    #
+    # # Generate toy dataset with 3 clusters
+    # np.random.seed(42)
+    # data = np.vstack((np.random.randn(100, numberOfDimensions), np.random.randn(100, numberOfDimensions) + 5, np.random.randn(100, numberOfDimensions) + 10))
+    #
+    # # Run EM algorithm
+    # pi, means, covariances, log_likelihoods = em_algorithm(data, num_clusters=numberOfClusters)
+    #
+    # # Create meshgrid for contour plot
+    #
+    # twoDimentionsRepresentation(data,means[:,1:3],covariances[:,1:3,1:3],numberOfClusters)
+    #
+    # twoDimentionsRepresentation(data,means[:,:2],covariances[:,:2,:2],numberOfClusters)
+    #
+    # # Plot data points and contour plot
+    # multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensions)
+    plot_log_likelihoods_from_csv_files("Results/PPEM/*.csv","Results/PPEM/LogLikelyhoods")
