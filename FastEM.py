@@ -3,6 +3,7 @@ import os
 import time
 
 import imageio
+import self as self
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from HelpingFunctions import twoDimentionsRepresentation, twoDimentionalGifCreator
@@ -16,8 +17,8 @@ class algortithem:
     Attributes:
         pi:to be written later
         log_likelihoods:to be written later
-        covariances:to be written later
-        means:to be written later
+        covariances_:to be written later
+        means_:to be written later
         eps:to be written later
         inputDimentions:to be written later
         tick:to be written later
@@ -59,10 +60,10 @@ class algortithem:
 
         """
 
-        self.pi = None
+        self._pi = None
         self.log_likelihoods = []
-        self.covariances = None
-        self.means = None
+        self._covariances = None
+        self._means = None
         self.eps = eps
         self.inputDimentions = inputDimentions
 
@@ -103,7 +104,14 @@ class algortithem:
 
         self.plot_name = plot_name
 
+    def set_covariances(self, covariances):
+        self._covariances = covariances
 
+    def set_means(self, means):
+        self._means = means
+
+    def set_pi(self, pi):
+        self.pi = pi
 
     def create_input(self):
         """
@@ -138,9 +146,9 @@ class algortithem:
         :return: Nothing
         """
         num_samples, num_dimensions = self.n_inputs.shape
-        self.pi = np.ones(self.k) / self.k
-        self.means = np.random.rand(self.k, num_dimensions)
-        self.covariances = np.array([np.eye(num_dimensions)] * self.k)
+        self._pi = np.ones(self.k) / self.k
+        self._means = np.random.rand(self.k, num_dimensions)
+        self._covariances = np.array([np.eye(num_dimensions)] * self.k)
         self.responisbilities = np.zeros((self.numberOfSamples, self.k))
 
     def eStep(self):
@@ -149,9 +157,11 @@ class algortithem:
 
         :return: Nothing
         """
+        means = self._means.copy()
+        covariances = self._covariances.copy()
         for j in range(self.k):
-            self.responisbilities[:, j] = self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j],
-                                                                               self.covariances[j])
+            self.responisbilities[:, j] = self._pi[j] * multivariate_normal.pdf(self.n_inputs, means[j],
+                                                                                covariances[j])
         self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):
@@ -163,13 +173,13 @@ class algortithem:
         # M-step: update parameters
         N_k = np.sum(self.responisbilities, axis=0)
         for j in range(self.k):
-            self.means[j] = np.sum(self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
-            self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
+            self._means[j] = np.sum(self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0) / N_k[j]
+            self._covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
-                x = self.n_inputs[n, :] - self.means[j, :]
-                self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
-            self.covariances[j] /= N_k[j]
-        self.pi = N_k / self.numberOfSamples
+                x = self.n_inputs[n, :] - self._means[j, :]
+                self._covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
+            self._covariances[j] /= N_k[j]
+        self._pi = N_k / self.numberOfSamples
         self.LogLikelyhood()
 
     def mStep_epsilon(self):
@@ -180,25 +190,25 @@ class algortithem:
         """
         # M-step: update parameters
         Nk = np.sum(self.responisbilities, axis=0)
-        oldMeans = self.means.copy()
+        oldMeans = self._means.copy()
 
         # M*-step with ε-acceleration
         for j in range(self.k):
 
-            self.means[j] = np.sum(
+            self._means[j] = np.sum(
                 self.responisbilities[:, j].reshape(-1, 1) * self.n_inputs, axis=0
             ) / Nk[j]
 
-            self.covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
+            self._covariances[j] = np.zeros((self.inputDimentions, self.inputDimentions))
             for n in range(self.numberOfSamples):
-                x = self.n_inputs[n, :] - self.means[j, :]
-                self.covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
-            self.covariances[j] /= Nk[j]
+                x = self.n_inputs[n, :] - self._means[j, :]
+                self._covariances[j] += self.responisbilities[n, j] * np.outer(x, x)
+            self._covariances[j] /= Nk[j]
 
             # ε-acceleration
-            self.means[j] = self.eps * oldMeans[j] + (1 - self.eps) * self.means[j]
+            self._means[j] = self.eps * oldMeans[j] + (1 - self.eps) * self._means[j]
 
-        self.pi = Nk / self.numberOfSamples
+        self._pi = Nk / self.numberOfSamples
 
         self.LogLikelyhood()
 
@@ -213,13 +223,13 @@ class algortithem:
         # Compute log-likelihood
         try:
             log_likelihood = np.sum(
-                np.log(np.sum(self.pi[j] * multivariate_normal.pdf(self.n_inputs, self.means[j], self.covariances[j])
+                np.log(np.sum(self._pi[j] * multivariate_normal.pdf(self.n_inputs, self._means[j], self._covariances[j])
                               for j in range(self.k))))
             self.log_likelihoods.append(log_likelihood)
 
         except np.linalg.LinAlgError:
             print(f"{self.plot_name}  Singular matrix cannot be inversed! ")
-            print("means\n",self.means,"\n","covariances\n",self.covariances)
+            print("means\n", self._means, "\n", "covariances\n", self._covariances)
 
     def handle_initial_time(self):
         """calculates initial time"""
@@ -290,24 +300,23 @@ class algortithem:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
                 self.savePlotAsGif()
-                self.usePlotingTools(i, True)
+                self.usePlotingTools(self.iteration, True)
                 break
 
-        return self.pi, self.means, self.covariances, self.log_likelihoods, self.n_inputs,self.ticks,self.time_line
+        return self._pi, self._means, self._covariances, self.log_likelihoods, self.n_inputs, self.ticks, self.time_line
 
     def update_paramters(self, pi, means, covariances):
-        self.pi, self.means, self.covariances = pi, means, covariances
+        self._pi, self._means, self._covariances = pi, means, covariances
 
     def usePlotingTools(self, iteration, bool):
         """Plot the EM output in 2 dimensions """
         try:
-            if iteration % 4:
-                if bool:
-                    twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,
-                                             self.pi, self.plot_name)
-                else:
-                    twoDimentionalGifCreator(self.n_inputs, self.means, self.covariances, self.k, iteration, self.plots,
-                                             self.pi)
+            if bool:
+                twoDimentionalGifCreator(self.n_inputs, self._means, self._covariances, self.k, iteration, self.plots,
+                                         self._pi, self.plot_name)
+            else:
+                twoDimentionalGifCreator(self.n_inputs, self._means, self._covariances, self.k, iteration, self.plots,
+                                         self._pi)
         except np.linalg.LinAlgError:
             print("covariance is not Inversable or not singular")
 
@@ -336,6 +345,7 @@ class algortithem:
         self.plots = []
 
 
+
 # print_B = lambda x: print(f" Best:{len(x.object)} ,fittness: {x.fitness} ", end=" ")
 print_B = lambda x: print(f" Best:{x} ,\nfittness: {x.fitness} ", end=" ")
 # print_B = lambda x: print(f" Best: {x.object} ,fittness: {x.fitness} ", end=" ")
@@ -354,7 +364,8 @@ if __name__ == '__main__':
     max_iter = 1000
     number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods, n_input,ticks,time_line = algortithem(7200, 2, 1000, 3,
-                                                                   plottingTools=True,plot_name="7200").solve()
+    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(7200, 2, 1000, 3,
+                                                                                     plottingTools=True,
+                                                                                     plot_name="7200").solve()
 
     print(covariances)
