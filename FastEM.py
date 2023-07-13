@@ -334,7 +334,7 @@ class algortithem:
             images.append(imageio.imread(filename))
         if self.plottingEnabled:
             imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
-        self.deleteTempImages()
+        # self.deleteTempImages()
 
     def deleteTempImages(self):
         """Helper function that deletes all images created to create the GIF file"""
@@ -364,7 +364,7 @@ if __name__ == '__main__':
     max_iter = 1000
     number_ofClusters = 4
 
-    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(7200, 2, 1000, 3,
+    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(1020, 2, 1000, 3,
                                                                                      plottingTools=True,
                                                                                      plot_name="7200").solve()
 

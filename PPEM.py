@@ -11,7 +11,7 @@ class Partial_PPEM(Partial_EM):
             n:number of parameters.
             max_iter:number of iterations
             number_of_clustures :number of clusters to be associated with the data points
-            input :input of the PPEM algorithm when we use server client model
+            input :input of the PPEM algorithm1 when we use server client model
             inputDimentions:the dimensions of the input array
             epsilonExceleration:a boolean that enables/disables convergence with epsilons aid
             eps:the value of epsilon that helps with the convergence criteria
@@ -32,10 +32,10 @@ class Partial_PPEM(Partial_EM):
         a,b,c = super(Partial_PPEM, self).mStep_epsilon()
         return self.encryption_unit.CKKS_encrypt(a), self.encryption_unit.CKKS_encrypt(b),self.encryption_unit.CKKS_encrypt(c)
      
-     def update(self, a_all,b_all,c_all,n):
-            a=self.encryption_unit.decrypt(a_all)
-            b=self.encryption_unit.decrypt(b_all)
-            c=self.encryption_unit.decrypt(c_all)
-            n_=self.encryption_unit.decrypt(n)
-            super(Partial_PPEM, self).update(a,b,c,n)
-   
+    def update(self, a_all,b_all,c_all,n):
+        a=self.encryption_unit.decrypt(a_all)
+        b=self.encryption_unit.decrypt(b_all)
+
+        c=self.encryption_unit.decrypt(c_all)
+        n_=self.encryption_unit.decrypt(n)
+        super(Partial_PPEM, self).update(a,b,c,n_)

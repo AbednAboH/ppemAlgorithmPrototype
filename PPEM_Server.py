@@ -39,6 +39,10 @@ class PPserver(Server):
                                        ,clients=clients, plot_name=plot_name,Partial_em=Partial_PPEM)
 
         self.encryptionUnit = encryption
+    def update_all_clients(self, a, b, c,n=None):
+        n=self.encryptor.CKKS_encrypt([self.n])
+        super(PPserver, self).update_all_clients(a,b,c,n)
+        
 
     # update encryption for all clients
         self.encryptor=None
@@ -52,23 +56,23 @@ class PPserver(Server):
 
     def usePlotingTools(self, iteration, bool):
         "For graph drawing functionality"
-        self._covariances=self.clients[0].covariances_
-        self._means=self.clients[0].means_
-        self._pi=self.clients[0].pi
+        self._covariances=self.clients[0]._covariances
+        self._means=self.clients[0]._means
+        self._pi=self.clients[0]._pi
         super(PPserver, self).usePlotingTools(iteration,True)
 
 if __name__ == '__main__':
     for n in range(100, 10000, 100):
         for k in range(2, 4):
             if n % k == 0:
-                server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001, clients=1,
+                server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.00001, clients=1,
                                 plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c1")
                 pi, means, covariances, log_likelihoods, n_input,ticks,time_line = server.solve()
                 writeData(pi, means, covariances, log_likelihoods, n_input,ticks,time_line,f"Results/PPEM/PPEM_n{n}_k3_c1.csv")
                 for clients in range(2, 10, 4):
                     if n % clients == 0 and n / k > 20:
                         print("\n\n\n", "------" * 10)
-                        server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
+                        server = PPserver(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.00001,
                                         clients=clients,
                                         plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
                         pi, means, covariances, log_likelihoods, n_input,ticks,time_line=server.solve()

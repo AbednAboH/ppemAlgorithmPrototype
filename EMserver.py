@@ -87,9 +87,11 @@ class Server(algortithem):
         likelyhood = [client.getLikelyhood() for client in self.clients]
         self.log_likelihoods.append(np.sum(likelyhood))
 
-    def update_all_clients(self, a, b, c):
+    def update_all_clients(self, a, b, c,n=None):
+        if n==None:
+            n=self.n
         for index, client in enumerate(self.clients):
-            client.update(a.copy(), b.copy(), c.copy(), self.n)
+            client.update(a.copy(), b.copy(), c.copy(), n)
             client.LogLikelyhood()
 
     def stopage(self, i):

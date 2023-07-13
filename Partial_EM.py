@@ -40,6 +40,6 @@ class Partial_EM(algortithem):
 
     def update(self, a_all,b_all,c_all,n):
         for j in range(self.k):
-            self._means[j] = b_all[j] / a_all
-            self._covariances[j] = c_all[j] / a_all
+            self._means[j] = b_all[j] / a_all[j]
+            self._covariances[j] = c_all[j] / a_all[j]
         self._pi = a_all / n
