@@ -23,7 +23,7 @@ class Partial_PPEM(Partial_EM):
         # encryption unit for encrypting the data for each client
         self.encryption_unit = encrypt
         self.qisaEncrypted = None
-
+    
     def update_encryption(self, context):
         self.encryption_unit = context
 
