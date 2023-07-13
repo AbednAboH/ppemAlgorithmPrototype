@@ -44,8 +44,8 @@ class PPEM(algortithem):
         # Calculate the probabilities of each sample belonging to each component
         log_probabilities = np.zeros((n_samples, n_components))
         for i in range(n_components):
-            mean = self.means[i]
-            covariance = self.covariances[i]
+            mean = self._means[i]
+            covariance = self._covariances[i]
             responsibilities = self.responisbilities[i]
             covariance_det = np.linalg.det(covariance)
             # todo do not use the invers , there is a better way+
@@ -106,16 +106,16 @@ class PPEM(algortithem):
         # Calculate the new means, covariances, and mixing coefficients
         for i in range(self.k):
             # Calculate the new mixing coefficient
-            pi_i = (np.sum(self.pi[:, i]) + self.eps) / n_samples
+            pi_i = (np.sum(self._pi[:, i]) + self.eps) / n_samples
             pi.append(pi_i)
 
             # Calculate the new mean
-            mu_i = np.sum(self.pi[:, i].reshape(-1, 1) * self.responisbilities, axis=0) / (np.sum(self.pi[:, i]) + self.eps)
+            mu_i = np.sum(self._pi[:, i].reshape(-1, 1) * self.responisbilities, axis=0) / (np.sum(self._pi[:, i]) + self.eps)
             mu.append(mu_i)
 
             # Calculate the new covariance
             diff = self.responisbilities - mu_i
-            cov_i = np.dot((self.pi[:, i].reshape(-1, 1) * diff).T, diff) / (np.sum(self.pi[:, i]) + self.eps)
+            cov_i = np.dot((self._pi[:, i].reshape(-1, 1) * diff).T, diff) / (np.sum(self._pi[:, i]) + self.eps)
             sigma.append(cov_i)
 
             # Encrypt the cluster parameters
@@ -123,9 +123,9 @@ class PPEM(algortithem):
             cov_i_encrypted = self.encrypt_data(cov_i)
             pi_i_encrypted = self.encrypt_data(pi_i)
             ciphertexts.append((mu_i_encrypted, cov_i_encrypted, pi_i_encrypted))
-        self.pi=pi
-        self.covariances=sigma
-        self.means=mu
+        self._pi=pi
+        self._covariances=sigma
+        self._means=mu
         self.ciphertexts=ciphertexts
         # return ciphertexts, mu, sigma, pi
 

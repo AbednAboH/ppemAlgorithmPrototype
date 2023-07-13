@@ -1,4 +1,5 @@
 import csv
+import math
 import os
 
 import imageio as imageio
@@ -56,7 +57,7 @@ def em_algorithm(data, num_clusters, max_iter=1000, eps=1e-4):
     return pi, means, covariances, log_likelihoods
 
 
-def twoDimentionsRepresentation(data,means,covariances,numberOfClusters):
+def twoDimentionsRepresentation(data, means, covariances, numberOfClusters):
     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
@@ -81,11 +82,12 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
         print("Cannot plot more than 4 dimensions or less than 2 dimensions.")
         return
     # Create meshgrid for contour plot
-    #gets minmum and max value in each dimention
+    # gets minmum and max value in each dimention
     ranges = [(data[:, i].min() - 1, data[:, i].max() + 1) for i in range(numberOfDimensions)]
     # np.linespace creates 100 samples from the minmum to the maximum
     # mesh = np.meshgrid(*[np.linspace(r[0], r[1], 100) for r in ranges])
-    mesh = np.meshgrid(*[np.linspace(data[:, i].min() - 1, data[:,i].max() + 1, 100) for i in range(numberOfDimensions)])
+    mesh = np.meshgrid(
+        *[np.linspace(data[:, i].min() - 1, data[:, i].max() + 1, 100) for i in range(numberOfDimensions)])
 
     # Compute PDF values for contour plot
     Z = np.zeros((mesh[0].shape[0], mesh[0].shape[1], len(pi)))
@@ -103,7 +105,8 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
             axs[i, j - 1].set_ylabel(f"Dimension {j + 1}")
     plt.show()
 
-def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,name=None):
+
+def twoDimentionalGifCreator(data, means, covariances, numberOfClusters, i, plots, pi, name=None):
     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
@@ -128,12 +131,21 @@ def twoDimentionalGifCreator(data,means,covariances,numberOfClusters,i,plots,pi,
         plt.close(fig)
         plots.append('temp/temp%d.png' % i)
     else:
+        name2 = name.split('/')
+        # name2.remove(name[-1])
+        string = ""
+        for i, n in enumerate(name2):
+            if i != len(name2) - 1:
+                string += n + '/'
+        if not os.path.exists(string):
+            os.makedirs(string)
         fig.savefig(f'{name}.png', dpi=200)
         plt.close(fig)
-        plots.append(f'{name}.png' )
+        plots.append(f'{name}.png')
 
-def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihoods:list, n_input:list,ticks:list,time_line:list,FileName:str):
 
+def writeData(pi: np.array, means: np.array, covariances: np.array, log_likelihoods: list, n_input: list, ticks: list,
+              time_line: list, FileName: str):
     # Combine the data into a list of rows
     rows = [
         ['pi'] + pi.tolist(),
@@ -146,11 +158,11 @@ def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihood
     ]
 
     # Write the rows to a CSV file
-    second=FileName.split("/")
-    second.pop(len(second)-1)
-    sting=""
+    second = FileName.split("/")
+    second.pop(len(second) - 1)
+    sting = ""
     for name in second:
-        sting+=name+"/"
+        sting += name + "/"
     directory = os.path.dirname(sting)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -158,29 +170,31 @@ def writeData( pi:np.array, means:np.array, covariances:np.array, log_likelihood
         writer = csv.writer(csvfile)
         writer.writerows(rows)
 
-def plot_log_likelihood_from_csv(FileName, saveFileName,fileName):
+
+def plot_log_likelihood_from_csv(FileName, saveFileName, fileName):
     iterations = []
     log_likelihoods = []
-    print("hello",FileName)
+    print("hello", FileName)
     # Read the CSV file
     with open(FileName, 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             if row[0] == 'log_likelihoods':
                 log_likelihoods = list(map(float, row[1:]))
-        newlog=[log_likelihoods[i]-log_likelihoods[i-1] for i in range(len(log_likelihoods)) ]
-    iterations=[i for i in range(len(newlog))]
+        newlog = [log_likelihoods[i] - log_likelihoods[i - 1] for i in range(len(log_likelihoods))]
+    iterations = [i for i in range(len(newlog))]
     # Plot the log-likelihood per iteration
     plt.plot(iterations, newlog, marker='o')
     plt.xlabel('Iteration')
     plt.ylabel('Log-Likelihood')
-    plt.title('Log-Likelihood per Iteration'+fileName)
+    plt.title('Log-Likelihood per Iteration' + fileName)
 
     # Save the plot as an image file
     plt.savefig(saveFileName)
 
     # Close the plot to release resources (optional)
     plt.close()
+
 
 def plot_log_likelihoods_from_csv_files(file_pattern, output_directory):
     # Find all CSV files matching the pattern
@@ -190,17 +204,22 @@ def plot_log_likelihoods_from_csv_files(file_pattern, output_directory):
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     for csv_file in csv_files:
-
         # Extract the filename without the extension
         filename = csv_file.split('.')[0]
-        filename=filename.split('/')
-        filename=filename[-1].split('\\')
+        filename = filename.split('/')
+        filename = filename[-1].split('\\')
 
         print(filename[-1])
         # Generate the output filename for the plot
         output_filename = f"{output_directory}/{filename[-1]}_LogLikelyhood_plot.png"
         # Call the plot_log_likelihood_from_csv function for each CSV file
-        plot_log_likelihood_from_csv(csv_file, output_filename,filename[-1])
+        plot_log_likelihood_from_csv(csv_file, output_filename, filename[-1])
+
+
+def pdf(x, mean, covariance):
+    mv_normal = multivariate_normal(mean=mean, cov=covariance)
+    return mv_normal.pdf(x)
+
 
 if __name__ == '__main__':
     # """ Testing functions and algorithms """
@@ -223,4 +242,4 @@ if __name__ == '__main__':
     #
     # # Plot data points and contour plot
     # multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensions)
-    plot_log_likelihoods_from_csv_files("Results/PPEM/*.csv","Results/PPEM/LogLikelyhoods")
+    plot_log_likelihoods_from_csv_files("Results/PPEM/*.csv", "Results/PPEM/LogLikelyhoods")
