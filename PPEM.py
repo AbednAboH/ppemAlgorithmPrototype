@@ -35,7 +35,6 @@ class Partial_PPEM(Partial_EM):
     def update(self, a_all,b_all,c_all,n):
         a=self.encryption_unit.decrypt(a_all)
         b=self.encryption_unit.decrypt(b_all)
-
         c=self.encryption_unit.decrypt(c_all)
         n_=self.encryption_unit.decrypt(n)
         super(Partial_PPEM, self).update(a,b,c,n_)
