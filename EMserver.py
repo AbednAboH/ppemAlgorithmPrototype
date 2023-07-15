@@ -51,11 +51,7 @@ class Server(algortithem):
                 self.partialEM(n=input_for_each_client, inputDimentions=self.inputDimentions
                                , max_iter=1, number_of_clustures=self.k, input=split_indices[i],
                                plot_name=self.plot_name, eps=self.eps))
-            # todo:for now, in case you change the way the input is created you have to change these lines or delete them
-            # if i == 0:
-            #     self.n_inputs = self.clients[i]
-            # else:
-            #     self.n_inputs = np.vstack((self.n_inputs, self.clients[i]))
+
 
     def eStep(self):
         """send instructions to the clients to calculate their own e-step on their data"""
@@ -76,7 +72,6 @@ class Server(algortithem):
         a = np.sum(all_qisa, axis=0)
         b = np.sum(means, axis=0)
         c = np.sum(covariances, axis=0)
-
         self.update_all_clients(a, b, c)
 
         self._pi=self.clients[0]._pi

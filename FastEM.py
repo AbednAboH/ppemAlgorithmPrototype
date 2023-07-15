@@ -42,7 +42,7 @@ class algortithem:
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 1e-4, epsilonExceleration: bool = True, input: np.array = None,
-                 plottingTools: bool = False, plot_name=""):
+                 plottingTools: bool = False, plot_name="",show_time=True):
 
         """
         Initiate the algorithm's parameters
@@ -103,6 +103,8 @@ class algortithem:
         self.initParameters()
 
         self.plot_name = plot_name
+
+        self.show_time=show_time
 
     def set_covariances(self, covariances):
         self._covariances = covariances
@@ -206,7 +208,7 @@ class algortithem:
             self._covariances[j] /= Nk[j]
 
             # ε-acceleration
-            self._means[j] = self.eps * oldMeans[j] + (1 - self.eps) * self._means[j]
+            # self._means[j] = self.eps * oldMeans[j] + (1 - self.eps) * self._means[j]
 
         self._pi = Nk / self.numberOfSamples
 
@@ -295,7 +297,8 @@ class algortithem:
             self.algo(i)
 
             self.iter.append(i)
-            self.handle_prints_time()
+            if self.show_time is not None:self.handle_prints_time()
+
             if self.stopage(i) or i == self.max_iter - 1:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
@@ -332,6 +335,7 @@ class algortithem:
         images = []
         for filename in self.plots:
             images.append(imageio.imread(filename))
+        print(images)
         if self.plottingEnabled:
             imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
         # self.deleteTempImages()
@@ -358,14 +362,14 @@ print_time = lambda x: print(f"Time :  {x[0]}  ticks: {x[1]}")
 variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 
 if __name__ == '__main__':
-    n = 100
+    n = 6000
     inputType = None
     inputDimentions = 2
     max_iter = 1000
-    number_ofClusters = 4
+    number_ofClusters = 2
 
-    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(1020, 2, 1000, 3,
+    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(n=n,inputDimentions=inputDimentions,max_iter=max_iter,number_of_clustures=number_ofClusters,
                                                                                      plottingTools=True,
-                                                                                     plot_name="7200").solve()
+                                                                                     plot_name=None).solve()
 
     print(covariances)

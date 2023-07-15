@@ -87,7 +87,6 @@
 # 10.7.23 
     1. our proposal was flawed as we didn't account for the responsibilities ! this is not good enough , we will now try to integrate the estep to be split between the server and the client
 
-
 # 14.7.23 
     1. the assumption that we had in the 10.7.23 was incorrect as the problem that we had while running the code was due to the fact that the server had no clue what the actual results were:
         meaning that in the server the parameters ,Pi,mean,covariance were not known thus the final visual result that we got was the original arbitrary means and covariances , not the actual results 
@@ -100,3 +99,8 @@ Here we show off one of the many results using the randomly generated data :
 this is an example of how the algorithm visually works , not the same one as before :
 
 ![](Results/7200.gif)
+
+# 14.7.23 
+        One more improvement on the convergence of the em algorithm : 
+                initate each pi,means,covariances of each client using local em algorithm
+        might even add a kmeans method to cluster the "clusters from each client" and send the mean back to each client 
