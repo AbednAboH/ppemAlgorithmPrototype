@@ -166,7 +166,8 @@ def writeData(pi: np.array, means: np.array, covariances: np.array, log_likeliho
     directory = os.path.dirname(sting)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    with open(FileName, 'w', newline='') as csvfile:
+    with open(FileName+'.csv', 'w', newline='') as csvfile:
+
         writer = csv.writer(csvfile)
         writer.writerows(rows)
 

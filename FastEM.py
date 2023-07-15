@@ -42,7 +42,7 @@ class algortithem:
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 1e-4, epsilonExceleration: bool = True, input: np.array = None,
-                 plottingTools: bool = False, plot_name="",show_time=True,id=0):
+                 plottingTools: bool = False, plot_name="",show_time=True,id=0,plot_last_iter=True):
 
         """
         Initiate the algorithm's parameters
@@ -103,7 +103,7 @@ class algortithem:
         self.initParameters()
 
         self.plot_name = plot_name
-
+        self.plot_last_iter=plot_last_iter
         self.show_time=show_time
         self._id=id
 
@@ -304,7 +304,7 @@ class algortithem:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
                 self.savePlotAsGif()
-                self.usePlotingTools(self.iteration, True)
+                if self.plot_last_iter:self.usePlotingTools(self.iteration, True)
                 break
 
         return self._pi, self._means, self._covariances, self.log_likelihoods, self.n_inputs, self.ticks, self.time_line
@@ -336,7 +336,6 @@ class algortithem:
         images = []
         for filename in self.plots:
             images.append(imageio.imread(filename))
-        print(images)
         if self.plottingEnabled:
             imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
         # self.deleteTempImages()
@@ -373,4 +372,3 @@ if __name__ == '__main__':
                                                                                      plottingTools=True,
                                                                                      plot_name=None).solve()
 
-    print(covariances)
