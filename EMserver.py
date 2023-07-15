@@ -96,8 +96,6 @@ class Server(algortithem):
 
     def stopage(self, i):
         # return False
-        if i > 1:
-            print(np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]))
         return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
 
 
