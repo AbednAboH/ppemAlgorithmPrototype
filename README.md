@@ -86,3 +86,9 @@
     4. might add a gradiant decsend function in the epsilone step of the exceleration !! this has been on my mind for a while now , maybe making the algorithm more aggressive can result in a good convergence rate ! 
 # 10.7.23 
     1. our proposal was flawed as we didn't account for the responsibilities ! this is not good enough , we will now try to integrate the estep to be split between the server and the client
+# 14.7.23 
+    1. the assumption that we had in the 10.7.23 was incorrect as the problem that we had while running the code was due to the fact that the server had no clue what the actual results were:
+        meaning that in the server the parameters ,Pi,mean,covariance were not known thus the final visual result that we got was the original arbitrary means and covariances , not the actual results 
+    2. which led us to understand another issue irrelevant to the previous point is that we shouldn't have tried calcualting the new covariances according to the new means in the m step ! 
+Here we show off one of the many results using the randomly generated data :
+![](Results/PPEM/PPEM_n600_k3_c6.png)
