@@ -23,11 +23,13 @@ class Partial_EM(algortithem):
                                          input, plottingTools, plot_name)
 
         self._pi, self._means, self._covariances,_,_,_,_=algortithem(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
-                                         input, plottingTools, plot_name,show_time=None).solve()
-        self.fastem=algortithem(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
-                                         input, plottingTools, plot_name,show_time=None)
+                                         input, plottingTools,show_time=None).solve()
+
         # encryption unit for encrypting the data for each client
         self.qisa = None
+
+
+
 
     def mStep_epsilon(self):
         """ calculate the sum of the responsibilities ,and the uppder side of the means equation meaning q_i,s,a* X_i then return them to the server"""

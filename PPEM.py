@@ -1,6 +1,6 @@
 from Partial_EM import Partial_EM
 import numpy as np
-
+import copy
 
 class Partial_PPEM(Partial_EM):
     def __init__(self, n, inputDimentions: int = 2, max_iter: int = 1, number_of_clustures: int = 2, eps: float = 1e-5,
@@ -25,7 +25,7 @@ class Partial_PPEM(Partial_EM):
         self.qisaEncrypted = None
     
     def update_encryption(self, context):
-        self.encryption_unit = context
+        self.encryption_unit = copy.deepcopy(context)
 
     def mStep_epsilon(self):
         """ calculate the sum of the responsibilities ,and the uppder side of the means equation meaning q_i,s,a* X_i then return them to the server"""

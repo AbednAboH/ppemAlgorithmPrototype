@@ -39,18 +39,21 @@ class Server(algortithem):
         self.partialEM = Partial_em
         self.init_clients(clients)
 
+
+
     def init_clients(self, num_clients):
         """ initiate the clients code the Partial EM code"""
         # 0todo create a selection method to choose data for each client for now each client creates his own data
         input_for_each_client = int(self.n / num_clients)
         np.random.shuffle(self.n_inputs)  # Shuffle the array randomly
         split_indices = np.array_split(self.n_inputs, num_clients)  # Split the indices into n sub-arrays
-
         for i in range(num_clients):
             self.clients.append(
                 self.partialEM(n=input_for_each_client, inputDimentions=self.inputDimentions
-                               , max_iter=1, number_of_clustures=self.k, input=split_indices[i],
+                               , max_iter=self.max_iter, number_of_clustures=self.k, input=split_indices[i],
                                plot_name=self.plot_name, eps=self.eps))
+
+
 
 
     def eStep(self):
@@ -61,13 +64,28 @@ class Server(algortithem):
     def mStep_epsilon(self):
 
 
+
         all_qisa, means, covariances, num_samples = [], [], [], []
-        # for each client do its own m step
+
+        # with multiprocessing.Pool() as pool:
+        #     results = []
+        #     for client in self.clients:
+        #         result = pool.apply_async(run_mStep_epsilon, (client,))
+        #         results.append(result)
+        #
+        #     for result in results:
+        #         a, b, c = result.get()
+        #         all_qisa.append(a)
+        #         means.append(b)
+        #         covariances.append(c)
+
+
         for client in self.clients:
             qisa, mean, cov = client.mStep_epsilon()
             all_qisa.append(qisa)
             means.append(mean)
             covariances.append(cov)
+
 
         a = np.sum(all_qisa, axis=0)
         b = np.sum(means, axis=0)

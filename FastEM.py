@@ -42,7 +42,7 @@ class algortithem:
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 1e-4, epsilonExceleration: bool = True, input: np.array = None,
-                 plottingTools: bool = False, plot_name="",show_time=True):
+                 plottingTools: bool = False, plot_name="",show_time=True,id=0):
 
         """
         Initiate the algorithm's parameters
@@ -105,6 +105,7 @@ class algortithem:
         self.plot_name = plot_name
 
         self.show_time=show_time
+        self._id=id
 
     def set_covariances(self, covariances):
         self._covariances = covariances
