@@ -126,7 +126,7 @@ if __name__ == '__main__':
                         print("\n\n\n", "------" * 10)
                         server = Server(n=n, max_iter=1000, number_of_clustures=k, plottingTools=False, eps=0.0001,
                                         clients=clients,
-                                        plot_name=f"Results/MultiPartyEM_With_initialization/n{n}_k{k}_c{clients}", input=n_input)
+                                        plot_name=f"Results/MultiPartyEM_With_initialization/EM_n{n}_k{k}_c{clients}", input=n_input)
                         pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
                         writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
                                   f"Results/MultiPartyEM_With_initialization/EM_n{n}_k{k}_c{clients}")

@@ -23,7 +23,7 @@ class Partial_EM(algortithem):
                                          input, plottingTools, plot_name)
 
         self._pi, self._means, self._covariances,_,_,_,_=algortithem(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
-                                         input, plottingTools,show_time=None,plot_last_iter=False).solve()
+                                         input,show_time=None,plot_last_iter=False).solve()
 
         # encryption unit for encrypting the data for each client
         self.qisa = None
