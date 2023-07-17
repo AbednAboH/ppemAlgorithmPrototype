@@ -25,5 +25,5 @@ class encryption:
         return tensorData
 
     def decrypt(self, encrypted_data):
-        """Decrypt the data using BFV decryption"""
+        """Decrypt the data"""
         return array(encrypted_data.decrypt().tolist())

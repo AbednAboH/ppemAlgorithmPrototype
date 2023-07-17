@@ -51,12 +51,14 @@
     although thrishold encryption seems good , i don't think that we can apply it as fully secure , maybe we can ! time will tell ! 
     there should be an option to simply split the work between the server and client while at the same time not compromising that much of security/performance 
 
-# 3.7.23 
+# 3.7.23
+    based on this approch :
+        https://redirect.cs.umbc.edu/~kanishk1/papers/ICDM_09_P2PEM.pdf
     we are now basing our approch via a peer-to-peer concept, inspired by "A Local Scalable Distributed Expectation Maximization Algorithm for Large
     Peer-to-Peer Networks"
     
 ![Untitled](https://github.com/AbednAboH/ppemAlgorithmPrototype/assets/92520508/6f4608aa-bd05-4d05-83d4-69a8067f68ef)
-
+        
     in which P is each peer in a network , m is the number of data points in each peer 
     in our Implentation each peer would be a client ,and the data sent to the server would be encrypted via homomorphic encryption  
     while the E-step would be performed in each "peer"'s environment the m step would then be split between both the server and the client , 
@@ -65,7 +67,7 @@
     security is garanteed if the server is an honest but curious adversary, to which we could add another layer of security to check the validity of the client 
     and the validity of the server such as Elliptic Curve Digital Signature Algorithm or Edwards-curve Digital Signature Algorithm
     to make sure that the server or client is who they say they are 
-# 4.7.23 
+# 4.7.23
     i've already implemented the algorithm without using encryption , what remains is to check if it works and then implement the encryption scheme ! 
     the full skelaton of the algorithm is ready 
 # 5.7.23 
@@ -80,6 +82,14 @@
         3.length of input 
         4.still haven't played with dimensions
 # 8.7.23 
+    we have now found out that there is another algorithm cvalled federated em algorithm and we found an article that takes exactly what we thought only applies to peer to peer em algorithm :
+        Article:
+                PRIVACY-PRESERVING DISTRIBUTED EXPECTATION MAXIMIZATION FOR GAUSSIAN
+                MIXTURE MODEL USING SUBSPACE PERTURBATION
+                Qiongxiu Li?
+                , Jaron S. Gundersen†
+                , Katrine Tjell† Rafal Wisniewski†
+                , Mads G. Christensen?
     1.PPEM algorithm was emplemented easily do to the last step that we made , the only thing that we had to chage was adding encryption before sending the data from the clients side ! amazing progression
     2. added csv files that contain the results of the algorithms run
     3. the results are all documented according to the nameing scheme :(PPEM_n100_k2_c2) "type of the algorithm","input size","number of supposed clusteres","number of clients 
@@ -87,7 +97,7 @@
 # 10.7.23 
     1. our proposal was flawed as we didn't account for the responsibilities ! this is not good enough , we will now try to integrate the estep to be split between the server and the client
 
-# 14.7.23 
+# 14.7.23
     1. the assumption that we had in the 10.7.23 was incorrect as the problem that we had while running the code was due to the fact that the server had no clue what the actual results were:
         meaning that in the server the parameters ,Pi,mean,covariance were not known thus the final visual result that we got was the original arbitrary means and covariances , not the actual results 
     2. which led us to understand another issue irrelevant to the previous point is that we shouldn't have tried calcualting the new covariances according to the new means in the m step ! 
