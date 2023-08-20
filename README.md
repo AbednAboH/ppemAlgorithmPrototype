@@ -114,3 +114,14 @@ this is an example of how the algorithm visually works , not the same one as bef
         One more improvement on the convergence of the em algorithm : 
                 initate each pi,means,covariances of each client using local em algorithm
         might even add a kmeans method to cluster the "clusters from each client" and send the mean back to each client 
+# 7.8.23
+    started to work on the latex document ,finished the first section.
+# 14.8.23 
+    michael introduced the em algorithm in the paper.
+    abed reshaped the whole document so that it would be readable 
+# 20.8.23 
+    expanded more on the federated em in the paper plus the GMM equations and the federated em equations and steps plus the federated em over netwroks introduction in overleaf
+    the privacy leakage should be added as that is what we are correcting or improving in the federated em algorithm 
+    also we need to add our approuche's privacy proof 
+# 21.8.23 
+    
