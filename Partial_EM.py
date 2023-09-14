@@ -22,8 +22,8 @@ class Partial_EM(algortithem):
         super(Partial_EM, self).__init__(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
                                          input, plottingTools, plot_name)
 
-        self._pi, self._means, self._covariances,_,_,_,_=algortithem(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
-                                         input,show_time=None,plot_last_iter=False).solve()
+        # self._pi, self._means, self._covariances,_,_,_,_=algortithem(n, inputDimentions, max_iter, number_of_clustures, eps, epsilonExceleration,
+        #                                  input,show_time=None,plot_last_iter=False).solve()
 
         # encryption unit for encrypting the data for each client
         self.qisa = None

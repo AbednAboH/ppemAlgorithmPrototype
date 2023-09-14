@@ -114,6 +114,26 @@ this is an example of how the algorithm visually works , not the same one as bef
         One more improvement on the convergence of the em algorithm : 
                 initate each pi,means,covariances of each client using local em algorithm
         might even add a kmeans method to cluster the "clusters from each client" and send the mean back to each client 
+
+# 25.7.23 
+        we made an appointment with our mentor to check with her if everything we have done so far is a great  approch and if there is a need for imporvment 
+# 8.8.23
+        we started writing the article we and have finished section 1 of the article including the introduction in latex using overleaf
+#15.8.23 
+        we finished the second part of the article that explains the general federated em algorithm + some essintial background 
+#22.8.23 
+        we worked on our approuch and explained it .
+# 27.8.23 
+        we worked on the algorithm itself and laid it's psudo code , and we are doing some background search for the ckks approuch + ways to prove our approuche's privacy
+# 5.9.23 
+        we found some articles that support our lemma that 2 different cypher codes are indistinguishable one from the other , meaning we cannot know which is which 
+        we also added some of the citations
+# 10.9.23 
+        finished writing the privacy and correctness sections based on the above informations 
+# 12.9.23 
+        we are working on getting the results for parkensons dataset to put them in the article and show our results 
+# 13.9.23 
+        points to maybe change in the latest :=]  sdfasd
 # 7.8.23
     started to work on the latex document ,finished the first section.
 # 14.8.23 

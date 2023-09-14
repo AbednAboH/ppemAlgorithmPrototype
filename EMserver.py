@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 from HelpingFunctions import *
@@ -15,7 +17,7 @@ class Server(algortithem):
                  eps: float = 0.00001,
                  epsilonExceleration: bool = True,
                  input: np.array = None, plottingTools: bool = False, clients: int = 2, plot_name="",
-                 Partial_em=Partial_EM):
+                 Partial_em=Partial_EM,coloring_feature=None):
         """
         Parameters:
             n :number of parameters.
@@ -35,6 +37,7 @@ class Server(algortithem):
                                      , eps=eps
                                      , epsilonExceleration=epsilonExceleration, input=input,
                                      plottingTools=plottingTools, plot_name=plot_name)
+        self.coloring_feature=coloring_feature
         self.clients = []
         self.partialEM = Partial_em
         self.init_clients(clients)
@@ -47,9 +50,11 @@ class Server(algortithem):
         input_for_each_client = int(self.n / num_clients)
         np.random.shuffle(self.n_inputs)  # Shuffle the array randomly
         split_indices = np.array_split(self.n_inputs, num_clients)  # Split the indices into n sub-arrays
+        # if self.n%2 !=0:
+        #     split_indices[1]=split_indices[1]+[split_indices[0][random.randint(0,len(split_indices-1))]]
         for i in range(num_clients):
             self.clients.append(
-                self.partialEM(n=input_for_each_client, inputDimentions=self.inputDimentions
+                self.partialEM(n=len(split_indices[i]), inputDimentions=self.inputDimentions
                                , max_iter=self.max_iter, number_of_clustures=self.k, input=split_indices[i],
                                plot_name=self.plot_name, eps=self.eps))
 
@@ -66,18 +71,6 @@ class Server(algortithem):
 
 
         all_qisa, means, covariances, num_samples = [], [], [], []
-
-        # with multiprocessing.Pool() as pool:
-        #     results = []
-        #     for client in self.clients:
-        #         result = pool.apply_async(run_mStep_epsilon, (client,))
-        #         results.append(result)
-        #
-        #     for result in results:
-        #         a, b, c = result.get()
-        #         all_qisa.append(a)
-        #         means.append(b)
-        #         covariances.append(c)
 
 
         for client in self.clients:

@@ -105,7 +105,42 @@ def multiDimentionsRepresentation(data, pi, means, covariances, numberOfDimensio
             axs[i, j - 1].set_ylabel(f"Dimension {j + 1}")
     plt.show()
 
+def colored_plot(data_full, means_full, covariances_full, labels, i, plots, pi, name=None,index_of_coloring=None,indexes_of_features=None):
+    begin,end=indexes_of_features
 
+    # Calculate the likelihood of each data point under each cluster
+    likelihoods = np.zeros((len(data_full), len(covariances_full)))
+    for j in range(len(covariances_full)):
+        likelihoods[:, j] = pi[j] * multivariate_normal.pdf(data_full, mean=means_full[j], cov=covariances_full[j])
+
+    # Assign labels based on the cluster with the highest likelihood
+    cluster_labels = np.argmax(likelihoods, axis=1)
+
+
+
+
+    # Extract points for "false" and "true" based on predicted labels
+    false_points = data_full[cluster_labels == 0]
+    true_points = data_full[cluster_labels == 1]
+    print(len(false_points)-len(true_points))
+    # Create the scatter plot
+    plt.scatter(false_points[:, begin], false_points[:, end], c='blue', label='Predicted False')
+    plt.scatter(true_points[:, begin], true_points[:, end], c='red', label='Predicted True')
+
+    # Overlay the true labels
+    # Replace true_labels with your ground truth labels (0 for "false," 1 for "true")
+    # true_labels = data_full[:,15]  # Example ground truth labels (replace with your actual labels)
+
+    #
+    # plt.scatter(data_full[true_labels == 0][:, begin], data_full[true_labels == 0][:, end], c='red', marker='^', label='True False')
+    # plt.scatter(data_full[true_labels == 1][:, begin], data_full[true_labels == 1][:, end], c='blue', marker='^', label='True True')
+
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.title('EM Algorithm Predictions vs. Ground Truth')
+    plt.legend()
+
+    plt.show()
 def twoDimentionalGifCreator(data, means, covariances, numberOfClusters, i, plots, pi, name=None):
     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
@@ -142,6 +177,45 @@ def twoDimentionalGifCreator(data, means, covariances, numberOfClusters, i, plot
         fig.savefig(f'{name}.png', dpi=200)
         plt.close(fig)
         plots.append(f'{name}.png')
+
+
+
+# def twoDimentionalGifCreator(data, means, covariances, numberOfClusters, i, plots, pi, name=None):
+#     x_min, x_max = data[:, 0].min() - 1, data[:, 0].max() + 1
+#     y_min, y_max = data[:, 1].min() - 1, data[:, 1].max() + 1
+#     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
+#     # Compute PDF values for contour plot
+#     Z = np.zeros((xx.shape[0], xx.shape[1], numberOfClusters))
+#     for k in range(numberOfClusters):
+#         Z_k = pi[k] * multivariate_normal.pdf(np.hstack((xx.reshape(-1, 1), yy.reshape(-1, 1))), means[k],
+#                                               covariances[k])
+#         Z[:, :, k] = Z_k.reshape(xx.shape)
+#     # Plot data points and contour plot
+#     fig, ax = plt.subplots()
+#     ax.scatter(data[:, 0], data[:, 1], alpha=0.5)
+#     for k in range(numberOfClusters):
+#         ax.contour(xx, yy, Z[:, :, k], levels=10, colors=[plt.cm.Set1(k / numberOfClusters)])
+#     ax.set_xlim([x_min, x_max])
+#     ax.set_ylim([y_min, y_max])
+#     ax.set_title('Frame %d' % i)
+#     if not os.path.exists('temp'):
+#         os.makedirs('temp')
+#     if name is None:
+#         fig.savefig('temp/temp%d.png' % i, dpi=200)
+#         plt.close(fig)
+#         plots.append('temp/temp%d.png' % i)
+#     else:
+#         name2 = name.split('/')
+#         # name2.remove(name[-1])
+#         string = ""
+#         for i, n in enumerate(name2):
+#             if i != len(name2) - 1:
+#                 string += n + '/'
+#         if not os.path.exists(string):
+#             os.makedirs(string)
+#         fig.savefig(f'{name}.png', dpi=200)
+#         plt.close(fig)
+#         plots.append(f'{name}.png')
 
 
 def writeData(pi: np.array, means: np.array, covariances: np.array, log_likelihoods: list, n_input: list, ticks: list,

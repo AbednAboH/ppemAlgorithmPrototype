@@ -14,7 +14,7 @@ class PPserver(Server):
     def __init__(self, n=200, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 0.00001,
                  epsilonExceleration: bool = True,
-                 input: np.array = None, plottingTools: bool = False, clients: int = 2,plot_name=""):
+                 input: np.array = None, plottingTools: bool = False, clients: int = 2,plot_name="",coloring_feature=None):
         """
         Parameters:
             n :number of parameters.
@@ -36,7 +36,7 @@ class PPserver(Server):
                                        epsilonExceleration=epsilonExceleration,
                                        input=input,
                                      plottingTools=plottingTools
-                                       ,clients=clients, plot_name=plot_name,Partial_em=Partial_PPEM)
+                                       ,clients=clients, plot_name=plot_name,Partial_em=Partial_PPEM,coloring_feature=None)
 
         self.encryptionUnit = encryption
     def update_all_clients(self, a, b, c,n=None):

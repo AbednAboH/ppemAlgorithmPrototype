@@ -5,7 +5,11 @@ import time
 import imageio
 import self as self
 from matplotlib import pyplot as plt
+from scipy.linalg import toeplitz
 from scipy.stats import multivariate_normal
+from sklearn.covariance import LedoitWolf
+from sklearn.mixture import GaussianMixture
+
 from HelpingFunctions import twoDimentionsRepresentation, twoDimentionalGifCreator
 import numpy as np
 
@@ -42,7 +46,7 @@ class algortithem:
 
     def __init__(self, n: int, inputDimentions: int = 2, max_iter: int = 100, number_of_clustures: int = 2,
                  eps: float = 1e-4, epsilonExceleration: bool = True, input: np.array = None,
-                 plottingTools: bool = False, plot_name="",show_time=True,id=0,plot_last_iter=True):
+                 plottingTools: bool = False, plot_name="", show_time=True, id=0, plot_last_iter=True):
 
         """
         Initiate the algorithm's parameters
@@ -65,6 +69,7 @@ class algortithem:
         self._covariances = None
         self._means = None
         self.eps = eps
+
         self.inputDimentions = inputDimentions
 
         # data for complexity analysis
@@ -103,9 +108,10 @@ class algortithem:
         self.initParameters()
 
         self.plot_name = plot_name
-        self.plot_last_iter=plot_last_iter
-        self.show_time=show_time
-        self._id=id
+        self.plot_last_iter = plot_last_iter
+        self.show_time = show_time
+        self._id = id
+        self.coloring_feature=None
 
     def set_covariances(self, covariances):
         self._covariances = covariances
@@ -154,6 +160,7 @@ class algortithem:
         self._covariances = np.array([np.eye(num_dimensions)] * self.k)
         self.responisbilities = np.zeros((self.numberOfSamples, self.k))
 
+
     def eStep(self):
         """
         E-step of the EM algorithm
@@ -162,9 +169,16 @@ class algortithem:
         """
         means = self._means.copy()
         covariances = self._covariances.copy()
-        for j in range(self.k):
-            self.responisbilities[:, j] = self._pi[j] * multivariate_normal.pdf(self.n_inputs, means[j],
-                                                                                covariances[j])
+        try:
+            for j in range(self.k):
+                self.responisbilities[:, j] = self._pi[j] * multivariate_normal.pdf(self.n_inputs, means[j],covariances[j])
+        except np.linalg.LinAlgError:
+            try:
+                covariances=self._covariances+1e-6*np.eye(self.inputDimentions)
+                for j in range(self.k):
+                    self.responisbilities[:, j] = self._pi[j] * multivariate_normal.pdf(self.n_inputs, means[j],covariances[j])
+            except np.linalg.LinAlgError:
+                print(f"ERROR !{self.plot_name}  Singular matrix cannot be inversed! ")
         self.responisbilities /= np.sum(self.responisbilities, axis=1, keepdims=True)
 
     def mstep(self):
@@ -231,8 +245,8 @@ class algortithem:
             self.log_likelihoods.append(log_likelihood)
 
         except np.linalg.LinAlgError:
-            print(f"{self.plot_name}  Singular matrix cannot be inversed! ")
-            print("means\n", self._means, "\n", "covariances\n", self._covariances)
+            print(f"ERROR !{self.plot_name}  Singular matrix cannot be inversed! ")
+
 
     def handle_initial_time(self):
         """calculates initial time"""
@@ -263,7 +277,7 @@ class algortithem:
             list of 3 arrays and length of input, Pi,Means,Covariances,number of samples
         """
 
-        if self.plottingEnabled: self.usePlotingTools(i, self.plot_name == "")
+        if self.plottingEnabled: self.usePlotingTools(i,self.plottingEnabled)
         self.eStep()
         return self.mStep_epsilon() if self.epsilonExceleration else self.mstep()
 
@@ -281,7 +295,7 @@ class algortithem:
             if true then stop else continue iterating
         """
 
-        return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) < self.eps else False
+        return True if i > 1 and np.abs(self.log_likelihoods[-1] - self.log_likelihoods[-2]) <= self.eps else False
 
     def solve(self):
         """
@@ -298,13 +312,13 @@ class algortithem:
             self.algo(i)
 
             self.iter.append(i)
-            if self.show_time is not None:self.handle_prints_time()
+            if self.show_time is not None: self.handle_prints_time()
 
             if self.stopage(i) or i == self.max_iter - 1:
                 print(" number of generations : ", i)
                 self.handle_prints_time()
                 self.savePlotAsGif()
-                if self.plot_last_iter:self.usePlotingTools(self.iteration, True)
+                if self.plot_last_iter: self.usePlotingTools(self.iteration, self.plottingEnabled)
                 break
 
         return self._pi, self._means, self._covariances, self.log_likelihoods, self.n_inputs, self.ticks, self.time_line
@@ -315,21 +329,18 @@ class algortithem:
     def usePlotingTools(self, iteration, bool):
         """Plot the EM output in 2 dimensions """
         try:
-            if bool:
-                twoDimentionalGifCreator(self.n_inputs, self._means, self._covariances, self.k, iteration, self.plots,
+
+            twoDimentionalGifCreator(self.n_inputs, self._means, self._covariances, self.k, iteration, self.plots,
                                          self._pi, self.plot_name)
-            else:
-                twoDimentionalGifCreator(self.n_inputs, self._means, self._covariances, self.k, iteration, self.plots,
-                                         self._pi)
         except np.linalg.LinAlgError:
-            print("covariance is not Inversable or not singular")
+            print(f"ERROR !{self.plot_name}  Singular matrix cannot be inversed! ")
+        finally:
+            pass
 
     def savePlotAsGif(self):
         """Convert all saved plots into one GIF that shows what tranpired on the data in real time"""
         # Save the plots as a GIF
-        dpi = 100
-        plots = []
-        dpi = 100
+
         if not os.path.exists('Results'):
             os.makedirs('Results')
 
@@ -337,7 +348,7 @@ class algortithem:
         for filename in self.plots:
             images.append(imageio.imread(filename))
         if self.plottingEnabled:
-            imageio.mimsave(fr'Results/{self.plot_name}.gif', images, duration=200)
+            imageio.mimsave(fr'{self.plot_name}.gif', images, duration=200)
         # self.deleteTempImages()
 
     def deleteTempImages(self):
@@ -347,7 +358,6 @@ class algortithem:
                 # remove the file
                 os.remove('temp')
         self.plots = []
-
 
 
 # print_B = lambda x: print(f" Best:{len(x.object)} ,fittness: {x.fitness} ", end=" ")
@@ -364,11 +374,16 @@ variance = lambda x: math.sqrt((x[0] - x[1]) ** 2)
 if __name__ == '__main__':
     n = 6000
     inputType = None
-    inputDimentions = 2
+    inputDimentions = 3
     max_iter = 1000
     number_ofClusters = 2
 
-    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(n=n,inputDimentions=inputDimentions,max_iter=max_iter,number_of_clustures=number_ofClusters,
-                                                                                     plottingTools=True,
-                                                                                     plot_name=None).solve()
-
+    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = algortithem(n=n,
+                                                                                     inputDimentions=inputDimentions,
+                                                                                     max_iter=max_iter,
+                                                                                     number_of_clustures=number_ofClusters,
+                                                                                     plottingTools=False,
+                                                                                     ).solve()
+    print(pi, "\n")
+    print(means, "\n")
+    print(covariances, "\n")
