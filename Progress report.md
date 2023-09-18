@@ -143,5 +143,39 @@ this is an example of how the algorithm visually works , not the same one as bef
     expanded more on the federated em in the paper plus the GMM equations and the federated em equations and steps plus the federated em over netwroks introduction in overleaf
     the privacy leakage should be added as that is what we are correcting or improving in the federated em algorithm 
     also we need to add our approuche's privacy proof 
-# 21.8.23 
-    
+# 27.8.23 
+        1.we expanded on the federated em and explained the initial changes that would be done on the algorithm to address the issue of the privacy leakage
+        2.We explained more about CKKS encryption, how its handled and why its a good implementation
+        3.we added a psudo code of the prorposed apprauch 
+
+# 3.9.23 
+        1. we reviewed the citations that should be done and put them in their places in the article
+        2. started discussing the privacy of our algorithm
+        3. explained our approach in a more detailed way 
+
+# 10.9.23 
+        1. we added to the github repository the parkingsons from the UCL data base 
+        2. explained why we chose this data set to test our proposal on.
+        3. we used pca to lower the dimentionality and created the results that we need to put them in the article .
+        4. we had to use pca because the initiation of a an appropriate covariance matrix was challenging as we had to abandone the initialization with em on each client
+           as we kept getting a singular matrix or a non negative semi-positive matrix that wouldn't allow us to estimate the pdf function , as we tried multiple ways to create it.
+           to our luck we both took courses on AI and machine learning so we tried normalizing the data which allowed the algorithm to work without pca , but with pca we can actually show what the results were so we chose to use it
+        5. it might be good to mention that sometimes on synthitic data an initialization might hold good results ,which all depends on the acutal data . 
+        as we have already done a test on multiple values with initialization in which we saw a huge benefit on most cases as the convergence times were incridible. 
+        but we digress , and point out that fact without taking it as a rule of thumb as different data sets require different implementations of an algorithm but we thought it was a good point to point out.
+# 13.9.23 
+        1. added more in depth information in the article , mostly worked on correcting mistakes 
+        2. added 2 scripts one in the main.py that has the option for the parkingsons ucl data base check allwing the user to check based on the parameters that they set (number of clients )
+        3. we have tried working on the parkingsons data base with the full dimentions but we didn't seem to get the correct answer , and we couldn't check but just by estimation of the pi variable , it was close as it gave one cluster a 30 percent and the other about 70 percent on average 
+        4.we managed to create a function that checks the loglikelyhood of all parkingson tests that we did and puts them in the same plot that can show the correctness of our implementation
+        5. prepared a tests script for use in the upcoming week 
+# 17.9.23
+        1.we finished our proposals correctness section and added more citations.
+        2. created a couple of methods that help us get the data from the full test we created earlier (random clusters and points based on #data points, #client and #clusters)
+        3. methods that show a loglikelyhood plot on all plots with the same number of data points and the same k
+        4. adjusted the algorithm to work in parallel again as in a big data set and with more clients we cant simulate a real environment with real clients so we added paralellisim to each client and the server on the PPEM vairaint
+        5. added a method that takes all the results and puts them in the same csv file such that the user can see an actual chart that compares both algorithms when using the same parameters 
+        6. renamed the files such that they can be representable in front of any reader and can be found fairly easily 
+        7. A point from last week that i forgot to mention was the entropy estimators that we used were not of much help as they cannot check for an individual A_11,B_11,X_1 for technical reasons , and the resulting entropy can only be seen on the clients side and we don't see it as a good estimation as it stays the same throught the full process
+        
+        
