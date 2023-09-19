@@ -64,10 +64,9 @@ class PPserver(Server):
 
 
 def PP_EM_Tests():
-    for n in range(2900, 10000, 900):
-        for k in range(2, 7,1):
-                if n==2900:
-                    k=6
+    for n in range(200 , 10000, 900):
+        for k in range(2, 4,1):
+
                 print(f"\n generating {n} Data with {k} Gaussian mixture models \n")
                 server = PPserver(n=n, max_iter=1, number_of_clustures=k, plottingTools=False, eps=PERSESSION, clients=1,
                                   plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c1")

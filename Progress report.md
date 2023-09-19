@@ -147,11 +147,13 @@ this is an example of how the algorithm visually works , not the same one as bef
         1.we expanded on the federated em and explained the initial changes that would be done on the algorithm to address the issue of the privacy leakage
         2.We explained more about CKKS encryption, how its handled and why its a good implementation
         3.we added a psudo code of the prorposed apprauch 
+        4. we worked on the presentation of the proposed approuch and added the basic Federated em 
 
 # 3.9.23 
         1. we reviewed the citations that should be done and put them in their places in the article
         2. started discussing the privacy of our algorithm
         3. explained our approach in a more detailed way 
+        4. we added to the presentation  our implementation
 
 # 10.9.23 
         1. we added to the github repository the parkingsons from the UCL data base 
@@ -177,5 +179,6 @@ this is an example of how the algorithm visually works , not the same one as bef
         5. added a method that takes all the results and puts them in the same csv file such that the user can see an actual chart that compares both algorithms when using the same parameters 
         6. renamed the files such that they can be representable in front of any reader and can be found fairly easily 
         7. A point from last week that i forgot to mention was the entropy estimators that we used were not of much help as they cannot check for an individual A_11,B_11,X_1 for technical reasons , and the resulting entropy can only be seen on the clients side and we don't see it as a good estimation as it stays the same throught the full process
-        
+# 18.9.23 
+        we are waiting for both algorithms to finish thier run to get all the results in which we plan to add to the article tommorow
         
