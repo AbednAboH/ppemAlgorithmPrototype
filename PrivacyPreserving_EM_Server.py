@@ -73,17 +73,21 @@ def PP_EM_Tests():
                 pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
 
                 for clients in range(2, 11, 4):
-                    print("\n\n\n", "------" * 10,
-                          f"testing with {clients} Clients with {n} data points and {k} Gaussian distributions")
+                    try:
+                        print("\n\n\n", "------" * 10,
+                              f"testing with {clients} Clients with {n} data points and {k} Gaussian distributions")
 
-                    server = PPserver(n=n, max_iter=MAXITER, number_of_clustures=k, plottingTools=False, eps=PERSESSION,
-                                          clients=clients,
-                                          plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
-                    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
-                    writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
-                                  f"Results/PPEM/Charts/PPEM_n{n}_k{k}_c{clients}.csv")
-                    if k==2:
-                        colored_plot(n_input, means, covariances, pi,
-                                  f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}_colored")
+                        server = PPserver(n=n, max_iter=MAXITER, number_of_clustures=k, plottingTools=False, eps=PERSESSION,
+                                              clients=clients,
+                                              plot_name=f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}", input=n_input)
+                        pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+                        writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+                                      f"Results/PPEM/Charts/PPEM_n{n}_k{k}_c{clients}.csv")
+                        if k==2:
+                            colored_plot(n_input, means, covariances, pi,
+                                      f"Results/PPEM/PPEM_n{n}_k{k}_c{clients}_colored")
+                    except Exception as e:
+                        print(e.args)
+                        continue
 
-PP_EM_Tests()
+# PP_EM_Tests()

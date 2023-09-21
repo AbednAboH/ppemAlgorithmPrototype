@@ -181,4 +181,5 @@ this is an example of how the algorithm visually works , not the same one as bef
         7. A point from last week that i forgot to mention was the entropy estimators that we used were not of much help as they cannot check for an individual A_11,B_11,X_1 for technical reasons , and the resulting entropy can only be seen on the clients side and we don't see it as a good estimation as it stays the same throught the full process
 # 18.9.23 
         we are waiting for both algorithms to finish thier run to get all the results in which we plan to add to the article tommorow
-        
+# 21.9.23 
+        we finished writing the full article , now we are ready to submit all the material. yet the presentation needs some work 

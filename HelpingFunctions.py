@@ -332,12 +332,16 @@ def compare_csv_files_by_nk(folder1_path, folder2_path,outputdir):
         # Extract 'n', 'k', and 'c' values from the filename
         filename = os.path.splitext(os.path.basename(csv_file))[0]
         parts = filename.split('_')
-        n, k, c = parts[1], parts[2], parts[3]
+        if 'n' in parts[1] and 'k' in parts[2]:
+            n, k, c = parts[1], parts[2], parts[3]
 
-        # Add the CSV file to the group
+        else:
+            n, k, c = parts[1], parts[1], parts[1]
         if (n, k) not in grouped_csv_files:
             grouped_csv_files[(n, k)] = []
         grouped_csv_files[(n, k)].append(csv_file)
+        # Add the CSV file to the group
+
 
     # Customize the plot appearance
     line_styles = ['-', '--', '-.', ':']
@@ -355,9 +359,9 @@ def compare_csv_files_by_nk(folder1_path, folder2_path,outputdir):
 
             # Use different colors for each group
             color = plt.cm.viridis(j / len(group))
-
+            linewidth=2*(len(group)-j)
             legend_label = f"{filename} (Folder {j + 1})"
-            plot_log_likelihood_from_csv_per_nk(csv_file, legend_label, linewidth=4, linestyle=line_style, color=color,
+            plot_log_likelihood_from_csv_per_nk(csv_file, legend_label, linewidth=linewidth, linestyle=line_style, color=color,
                                          single=False)
 
         # Add more details to the plot
@@ -380,13 +384,14 @@ def compare_both_algorithms(folder1_path, folder2_path, output_path,accepted_val
 
     # Iterate through files in folder1 and extract relevant data
     extract_data(data, folder1_path,"Folder1")
-
+    identifiers_array=[]
     # Iterate through files in folder2 and extract relevant data (similar to folder1)
     for filename in os.listdir(folder2_path):
         if filename.endswith('.csv'):
             identifier = filename.split('_')[1:]
             identifier = "_".join(identifier)
             identifier=identifier.split('.')[0]
+            identifiers_array.append(identifier)
             with open(os.path.join(folder2_path, filename), 'r') as file:
                 reader = csv.reader(file)
                 if identifier in data:
@@ -397,7 +402,7 @@ def compare_both_algorithms(folder1_path, folder2_path, output_path,accepted_val
                             data[identifier]["Folder2"]["Iterations"] = len(row) - 1
 
     # Write the data to a CSV file
-
+    identifiers_array.sort(key=lambda x:(int(x.split('_')[0][1:]),int(x.split('_')[1][1:]),int(x.split('_')[2][1:])))
     with open(output_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
 
@@ -411,11 +416,16 @@ def compare_both_algorithms(folder1_path, folder2_path, output_path,accepted_val
         writer.writerow(header)
 
         # Write the data rows
-        for identifier, values in data.items():
-            row = [identifier]
+        for id in identifiers_array:
+            values=data[id]
+            row = [id]
             for key in values["Folder1"].keys():
                 if key in accepted_values:
-                    row.extend([values["Folder1"][key], values["Folder2"].get(key, "")])
+                    try:
+                        row.extend([round(float(values["Folder1"][key]),3), round(float(values["Folder2"].get(key, "")),3)])
+                    except Exception as e:
+                        print("key doesn't exist in Folder 1 ,inserting folder1' values instead")
+                        row.extend([round(float(values["Folder1"][key]),3),"N\A"])
             writer.writerow(row)
 
 # extract the data from the files we created earlier

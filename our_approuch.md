@@ -3,62 +3,28 @@
 Our model builds upon the Federated EM approach, which involves a server-client architecture. We have previously demonstrated that the privacy issue in the Federated EM approach arises from the exchange of intermediate updates, specifically $a^t_{ij}$, $b^t_{ij}$, and $C^t_{ij}$, which reveal the private data of each client (node). To address this issue, we propose concealing the data from both the server and clients by encrypting it with Fully Homomorphic Encryption (FHE), specifically CKKS. One of the advantages of using CKKS is that addition and subtraction can be performed on encrypted data without revealing the individual $a^t_{ij}$, $b^t_{ij}$, and $C^t_{ij}$ values of each client (node). We will explain CKKS encryption and then illustrate how we apply it in the PPEM (Privacy-Preserving Expectation-Maximization) that we have designed.
 
 ### Proposed PPEM
-
-```latex
-\usepackage[noend]{algpseudocode}
-
-
-
-\begin{algorithm}
-  \caption{PPEM Protocol}\label{alg:share}
-  
-  \begin{algorithmic}[1]
-    \Procedure{Server for Iteration $t$}{}
-      \For{each Honest client $i$}
-        \State Initialize $\Sigma_i$, $\mu_i$, $\beta_i$
-        \State Perform E-step for client $i$
-        \State Create a CKKS keys using the encryption unit and provide it to client $i$ via secure channels
-        \State Perform Partial m-step i.e Calculate $a_i$, $b_i$, $c_i$ using (5)(15)(16)(17)
-        \State Encrypt vectors $a_i$, $b_i$, $c_i$ Using the keys
-        \State Send $a_i^{enc}$, $b_i^{enc}$, $c_i^{enc}$ to the server via secure channels
-      \EndFor
-    \EndProcedure
-    
-    \Procedure{Server}{}
-      \State Perform Server M-step:
-      \State $a_{\text{total}}^{enc}$, $b_{\text{total}}^{enc}$, $c_{\text{total}}^{enc} \leftarrow \sum_{i=1}^{c} a_i^{enc}$, $\sum_{i=1}^{c} b_i^{enc}$, $\sum_{i=1}^{c} c_i^{enc}$ (18)(19)(20)
-      \State Send $a_{\text{total}}^{enc}$, $b_{\text{total}}^{enc}$, $c_{\text{total}}^{enc}$ to all trusted clients
-    \EndProcedure
-    
-    \Procedure{Client $i$, element $j$}{}
-      \For{each client $i$ }
-            \For{each cluster j}
-              \State $a$, $b$, $c \leftarrow$ decrypt($a_{\text{total}}^{enc}$), decrypt($b_{\text{total}}^{enc}$), decrypt($c_{\text{total}}^{enc}$)
-              \State $\beta^{t+1} \leftarrow \frac{a_j}{a_{k+1}}$
-              \State $\mu^{t+1} \leftarrow \frac{b_j}{a_j}$
-              \State $\Sigma^{t+1} \leftarrow \frac{c_j}{a_j}$
-            \EndFor
-        \EndFor
-    \EndProcedure
-    
-    \Procedure{Server}{}
-      \For{each client $i$}
-        \State Calculate the log likelihoods for client $i$
-      \EndFor
-      \State $Log-Likelihood^{total} \leftarrow \sum_{i=1}^{clients} Log-Likelihood_i$
-      \State $Log-Likelihoods.append(Log-Likelihood^{total})$
-      \If{$Log-Likelihoods[-1] - Log-Likelihoods[-2] \leq \epsilon$}
-        \State Break
-      
-       \Else
-            \State Return to step 2 until convergence criteria is met
-    \EndIf
-    \EndProcedure
-  \end{algorithmic}
-\end{algorithm}
-```
-
-
+For iteration $t$, the encryption unit creates a public key and a secret key as a pair ($Public-k_t,secret-k_t)$ which is then distributed to all trusted nodes (clients) except the server which has no access to any key, each node then calculates it's own E-step ( PDF) then each node calculates the partial m-step (intermediate m-step) in which it calculates:
+    $a^t_{i,j}=P(x_i,N^t_j)$
+    $b^t_{i,j}=P(x_i|N^t_j)X_i$
+    $c^t_{i,j}=P(x_i,N^t_j)(x_i-\mu^t_j)(x_i-\mu^t_j)^T$
+where $i\in {1,2,3..n}$ nodes ,$j\in {1,2,...k}$  Gaussian distributions and assuming that the nodes are honest nodes that are not corrupted then each client(node) prepares a,b,c as three vectors that are made flat because we might be dealing with more than two dimensions , meaning each Gaussian distribution (Cluster would be made up of multiple dimensions .
+lets consider d dimensions for Data X  with k Gaussian mixture models : $a_i\in V^{1xk}  $ where V is a vector space ,$b_i\in M^{kxd}$ ,$c_i \in M^{kxdxd}$ Where M is a matrix space.
+our implementation takes $b_i,c_i$ and flattens them to be one single vector ,meaning $b_i'\in V^{kd}, c_i'\in V^{kdd}$ :
+    $a_i'=[a_{i1},a_{i2},..a_{ik},n_i]$ 
+ where $n_i$ is the number of data points in node i
+    $b_i'=[b_{i11},b_{i12},...b_{i1d},b_{i21}..b_{ikd}]$
+    $c_i'=[c_{i111},c_{i112},...,c_{i11d},c_{i121},...c_{i1dd},c_{i211}...c_{ikdd}]$
+after defining those vectors we continue with the partial m-step , we apply the CKKS encryption on each vector $a_i',b_i',c_i'$ then each node sends them back to the server . The server calculates using property (7) :
+    $a^{encrypted}_{total}=\sum^n_{i=1}(a^{encrypted}_i)'$
+    $b^{encrypted}_{total}=\sum^n_{i=1}(b^{encrypted}_i)'$
+    $c^{encrypted}_{total}=\sum^n_{i=1}(c^{encrypted}_i)'$
+The server then sends the results to each client where each client(node) then calculates:
+     $a,b,c=decrypt(a_{total}),decrypt(b_{total}),decrypt(c_{total})$
+      $n_c=a[k+1]$
+        $\beta^{t+1} =\frac{a_j}{n_c}$
+       $\mu^{t+1}=\frac{b_j}{a_j}$
+        $\Sigma^{t+1}=\frac{c_j}{a_j}$
+ Thus finishing the m-step , we repeat this process until convergence.
 ### Initialization
 The initialization process is carried out before the first iteration:
 
@@ -67,12 +33,12 @@ The initialization process is carried out before the first iteration:
 - $\pi_i$ is initialized with a Uniform distribution, ensuring that each cluster (Gaussian distribution) has the same probability as the others. 
 ### Privacy
 In our analysis, we assume that the nodes are honest and not corrupted. As previously demonstrated, the original Federated EM algorithm has a vulnerability where $x_i$ can be exposed and inferred by an attacker during the partial M-step. This means that the following mutual information is exposed to the server maximally:
-I(X_i; A^t_{ij}, B^t_{ij}) = I(X_i; X_i)
-To address this vulnerability, we encrypt both $A^t_{ij}$ and $B^t_{ij}$ using CKKS. Assuming that enc(Y) represents the CKKS-encrypted version of Y, and the server operates as described, the information that the server holds is:
-I(X; ∑enc(A^t_{i}), ∑enc(B^t_{i}), ∑enc(C^t_{i}))
-Since CKKS encryption is indistinguishable under the Chosen Plaintext Attack (IND-CPA), we can assume that each enc(A^t_i), enc(B^t_i), and enc(C^t_i) are indistinguishable from one another. Therefore, as an Honest but Curious adversary, the server cannot distinguish enc(A^t_i) from enc(B^t_i). Moreover, the server does not have the private key of the nodes (clients), thus cannot decrypt the information to find out the true values of A_i and B_i. This addresses the main vulnerability of the original Federated EM algorithm:
-I(X_i; enc(A^t_{i}), enc(B^t_{i})) = IND-CPA 0
-Furthermore, when considering the combined information held by the server in the form of enc(A^t_{i}), enc(B^t_{i}), and enc(C^t_{i}), they are indistinguishable from each other, enhancing privacy even further.
+$I(X_i; A^t_{ij}, B^t_{ij}) = I(X_i; X_i)$
+To address this vulnerability, we encrypt both $A^t_{ij}$ and $B^t_{ij}$ using CKKS. Assuming that $enc(Y) represents the CKKS-encrypted version of Y, and the server operates as described, the information that the server holds is:
+$I(X; ∑enc(A^t_{i}), ∑enc(B^t_{i}), ∑enc(C^t_{i}))$
+Since CKKS encryption is indistinguishable under the Chosen Plaintext Attack (IND-CPA), we can assume that each $enc(A^t_i)$, $enc(B^t_i)$, and $enc(C^t_i)$ are indistinguishable from one another. Therefore, as an Honest but Curious adversary, the server cannot distinguish enc(A^t_i) from enc(B^t_i). Moreover, the server does not have the private key of the nodes (clients), thus cannot decrypt the information to find out the true values of A_i and B_i. This addresses the main vulnerability of the original Federated EM algorithm:
+$I(X_i; enc(A^t_{i}), enc(B^t_{i})) = IND-CPA 0$
+Furthermore, when considering the combined information held by the server in the form of $enc(A^t_{i})$, $enc(B^t_{i})$, and $enc(C^t_{i})$, they are indistinguishable from each other, enhancing privacy even further.
 
 Regarding privacy on the client's side, as the server sends the encrypted sums A, B, and C, the client(node) decrypts them into a_total, b_total, and c_total, which does not pose any security concerns when dealing with large datasets. This security concern would be significant only when the number of nodes and datasets is significantly smaller, in which case this approach may not be recommended or useful.
 

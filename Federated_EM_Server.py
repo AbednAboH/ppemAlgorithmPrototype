@@ -145,16 +145,20 @@ def testsFEM():
                             plot_name=f"Results/FEM/EM_n{n}_k{k}_c1")
             pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
             for clients in range(2, 11, 4):
-                print("\n\n\n", "------" * 10,f"testing with {clients} Clients with {n} data points and {k} Gaussian distributions")
-                server = Server(n=n, max_iter=MAXITER, number_of_clustures=k, plottingTools=False, eps=PERSESSION,
-                                clients=clients,
-                                plot_name=f"Results/FEM/EM_n{n}_k{k}_c{clients}", input=n_input)
-                pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
-                writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
-                          f"Results/FEM/Charts/EM_n{n}_k{k}_c{clients}")
-                if k==2:
-                    colored_plot(n_input, means, covariances, pi,
-                             f"Results/FEM/EM_n{n}_k{k}_c{clients}_colored")
+                try:
+                    print("\n\n\n", "------" * 10,f"testing with {clients} Clients with {n} data points and {k} Gaussian distributions")
+                    server = Server(n=n, max_iter=MAXITER, number_of_clustures=k, plottingTools=False, eps=PERSESSION,
+                                    clients=clients,
+                                    plot_name=f"Results/FEM/EM_n{n}_k{k}_c{clients}", input=n_input)
+                    pi, means, covariances, log_likelihoods, n_input, ticks, time_line = server.solve()
+                    writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
+                              f"Results/FEM/Charts/EM_n{n}_k{k}_c{clients}")
+                    if k==2:
+                        colored_plot(n_input, means, covariances, pi,
+                                 f"Results/FEM/EM_n{n}_k{k}_c{clients}_colored")
+                except Exception as e:
+                    print(e.args)
+                    continue
 
 
 

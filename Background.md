@@ -6,28 +6,29 @@ Federated learning is motivated by privacy concerns as it does not involve trans
 
 We introduce the basics of the Gaussian Mixture Model (GMM). Suppose we have 'n' clients, each with its own 'x_i' data, where 'i' is in the range of {1, 2, ..., n}. The GMM density is given by:
 
-p(x) = ∑ β_jp(x|μ_j , Σ_j )
+$p(x) = ∑ β_jp(x|μ_j , Σ_j )$
 
 Where:
-- 'p(x|μ_j, Σ_j)' is the PDF function for the Gaussian distribution.
-- 'Σ_j' is the covariance matrix.
-- 'μ_j' is the covariance.
-- The mixture coefficient is 'β_j' for 'j' in 'C', where 'C' is the number of Gaussian models (clusters).
+- $p(x|μ_j, Σ_j)$ is the PDF function for the Gaussian distribution.
+- $Σ_j$ is the covariance matrix.
+- $μ_j$ is the covariance.
+- The mixture coefficient is $β_j$ for $j$ in $C$, where $C$ is the number of Gaussian models (clusters).
 
-The goal is to estimate 'Σ_j', 'μ_j', and 'β_j' for each 'j' in 'C'. To do this over a network, we should first understand how to model a network. Networks are generally modeled as undirected graphs 'G = {V, E}' where 'E ⊆ V × V', and 'V = {1, 2, ..., n}' nodes. Each node can communicate only through an edge connecting it to another node.
+The goal is to estimate $Σ_j$, $μ_j$, and $β_j$ for each $j$ in $C$. To do this over a network, we should first understand how to model a network. Networks are generally modeled as undirected graphs $G = {V, E}$ where $E ⊆ V × V$, and $V = {1, 2, ..., n}$ nodes. Each node can communicate only through an edge connecting it to another node.
 
-To estimate the latent variables through the EM algorithm with available data at each node, we follow these steps for iteration 't':
+
+To estimate the latent variables through the EM algorithm with available data at each node, we follow these steps for iteration $t$:
 
 **E-step:**
 
-P(x_i|N^t_j) = (p(x_i|μ_j, Σ_j)β^t_j) / Σ^c_{k=1} (p(x_i|μ_k, Σ_k)β^t_k)
+$P(x_i|N^t_j) = (p(x_i|μ_j, Σ_j)β^t_j) / Σ^c_{k=1} (p(x_i|μ_k, Σ_k)β^t_k)$
 
 
 **M-step:**
 
-β^{t+1}j = (Σ^{n}{i=1} P(x_i|N_{j}^t)) / n
-μ^{t+1} = (Σ^{n}{i=1} P(x_i|N{j}^{t}) x_i) / (Σ^{n}{i=1} P(x_i|N{j}^t))
-Σ_{j}^{t+1} = (Σ^{n}{i=1} P(x_i|N{j}^{t}) (x_i - μ_{j}^{t})(x_i - μ_{j}^{t})^T) / (Σ^{n}{i=1} P(x_i|N{j}^t))
+$β^{t+1}j = (Σ^{n}{i=1} P(x_i|N_{j}^t)) / n$
+$μ^{t+1} = (Σ^{n}{i=1} P(x_i|N{j}^{t}) x_i) / (Σ^{n}{i=1} P(x_i|N{j}^t))$
+$Σ_{j}^{t+1} = (Σ^{n}{i=1} P(x_i|N{j}^{t}) (x_i - μ_{j}^{t})(x_i - μ_{j}^{t})^T) / (Σ^{n}{i=1} P(x_i|N{j}^t))$
 
 ### Private Data and Adversary Models
 
@@ -43,28 +44,28 @@ The goal of federated learning is to learn the model under the constraint that d
 
 Within the scope of the EM algorithm, instead of directly transmitting the data 'x_i', each client 'i' shares the following intermediate updates only:
 
-a_{i j}^{t} = P(x_i, N_{j}^{t})
-b_{i j}^{t} = P(x_i, N_{j}^{t}) * x_i
-c_{i j}^{t} = P(x_i, N_{j}^{t}) * (x_i - μ_j^t) * (x_i - μ_j^t)
+$a_{i j}^{t} = P(x_i, N_{j}^{t})$
+$b_{i j}^{t} = P(x_i, N_{j}^{t}) * x_i$
+$c_{i j}^{t} = P(x_i, N_{j}^{t}) * (x_i - μ_j^t) * (x_i - μ_j^t)$
 
 
 All these updates can also be computed locally at client 'i'. After receiving these intermediate updates from all clients, the server consolidates all updates from local sources and determines the global update 'β_j^{t+1}', 'μ_j^{t+1}', 'Σ{j}^{t+1}' necessary for the M-step using the following method:
 
-β_j^{t+1} = Σ_{i=1}^n {a}{ij}^t / n
-μ_j^{t+1} = Σ{i=1}^n {b}{ij}^t / Σ{i=1}^n {a}{ij}^t = {b}{j}^t / {a}{j}^t
-Σ{j}^{t+1} = Σ{i=1}^n {c}{ij}^t / Σ{i=1}^n {a}{ij}^t = {c}{j}^t / {a}_{j}^t
+$β_j^{t+1} = Σ_{i=1}^n {a}{ij}^t / n$
+$μ_j^{t+1} = Σ{i=1}^n {b}{ij}^t / Σ{i=1}^n {a}{ij}^t = {b}{j}^t / {a}{j}^t$
+$Σ{j}^{t+1} = Σ{i=1}^n {c}{ij}^t / Σ{i=1}^n {a}{ij}^t = {c}{j}^t / {a}_{j}^t$
 
 
-Following that, the server transmits the global update 'β_j^{t+1}', 'μ_j^{t+1}', 'Σ{j}^{t+1}' back to each and every client.
+Following that, the server transmits the global update $β_j^{t+1}$, $μ_j^{t+1}$, $Σ{j}^{t+1}$ back to each and every client.
 
 ### Privacy Vulnerability in Federated EM Algorithm
 
 Using the federated EM algorithm described above, despite not directly sharing private data at each node, the data is still disclosed to the server due to the intermediate updates 'a_{ij}^t', 'b_{ij}^t' enabling the server to infer the private data 'x_i' of each client 'i', because of the equation:
 
-{b}{ij}^t = {a}{ij}^t * x_i
+$b_{ij}^t = a_{ij}^t * x_i$
 
 In other words, during each iteration, the server possesses the following mutual information:
 
-I(𝑋_i;𝐴^t_{i},𝐵^t_{i}) = I(𝑋_i;𝑋_i)
+$I(𝑋_i;𝐴^t_{i},𝐵^t_{i}) = I(𝑋_i;𝑋_i)$
 
 which is maximal.
