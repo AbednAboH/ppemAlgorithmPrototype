@@ -306,7 +306,7 @@ class algortithem:
         :return: pi,means,covariances,log likelyhood
         """
         self.handle_initial_time()
-        if self.show_time:print(f"\n\n------------------------------{self.name}------------------------------\n\n")
+        print(f"\n\n------------------------------{self.name}------------------------------\n\n")
         for i in range(self.max_iter):
 
             self.iteration += 1
