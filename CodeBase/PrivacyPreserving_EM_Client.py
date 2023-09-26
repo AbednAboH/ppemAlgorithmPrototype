@@ -1,4 +1,4 @@
-from Federated_EM_Client import Partial_EM
+from CodeBase.Federated_EM_Client import Partial_EM
 import numpy as np
 import copy
 import concurrent.futures

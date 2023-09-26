@@ -1,9 +1,8 @@
 from sklearn.decomposition import PCA
-
-from PrivacyPreserving_EM_Server import PPserver
-from Federated_EM_Server import Server
-from Settings_Parameters import *
-from HelpingFunctions import*
+from CodeBase.PrivacyPreserving_EM_Server import PPserver
+from CodeBase.Federated_EM_Server import Server
+from CodeBase.Settings_Parameters import *
+from CodeBase.HelpingFunctions import*
 
 def check_validity(string, start, end):
     x = input(string)

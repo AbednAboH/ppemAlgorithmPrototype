@@ -1,4 +1,4 @@
-from Settings_Parameters import *
+from CodeBase.Settings_Parameters import *
 import tenseal as ts
 from numpy import power,array
 class encryption:

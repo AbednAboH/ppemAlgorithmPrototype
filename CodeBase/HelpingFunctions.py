@@ -10,8 +10,7 @@ import pandas as pd
 from scipy.stats import multivariate_normal
 import glob
 import seaborn as sns
-
-from Settings_Parameters import accepted_values
+from CodeBase.Settings_Parameters import accepted_values
 
 
 def em_algorithm(data, num_clusters, max_iter=1000, eps=1e-4):
@@ -132,8 +131,8 @@ def twoDimentionalGifCreator(data, means, covariances, numberOfClusters, i, plot
     ax.set_xlim([x_min, x_max])
     ax.set_ylim([y_min, y_max])
     ax.set_title('Frame %d' % i)
-    if not os.path.exists('temp'):
-        os.makedirs('temp')
+    if not os.path.exists('../temp'):
+        os.makedirs('../temp')
     if gif:
         fig.savefig(f'temp/temp{i+1}.png', dpi=200)
         plt.close(fig)

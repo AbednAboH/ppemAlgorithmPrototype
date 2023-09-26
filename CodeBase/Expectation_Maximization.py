@@ -10,7 +10,7 @@ from scipy.stats import multivariate_normal
 from sklearn.covariance import LedoitWolf
 from sklearn.mixture import GaussianMixture
 
-from HelpingFunctions import twoDimentionsRepresentation, twoDimentionalGifCreator
+from CodeBase.HelpingFunctions import twoDimentionsRepresentation, twoDimentionalGifCreator
 import numpy as np
 
 
@@ -342,8 +342,8 @@ class algortithem:
         """Convert all saved plots into one GIF that shows what tranpired on the data in real time"""
         # Save the plots as a GIF
 
-        if not os.path.exists('Results'):
-            os.makedirs('Results')
+        if not os.path.exists('../Results'):
+            os.makedirs('../Results')
 
         images = []
         for filename in self.plots:
@@ -355,9 +355,9 @@ class algortithem:
     def deleteTempImages(self):
         """Helper function that deletes all images created to create the GIF file"""
         for i, fig in enumerate(self.plots):
-            if os.path.exists('temp'):
+            if os.path.exists('../temp'):
                 # remove the file
-                os.remove('temp')
+                os.remove('../temp')
         self.plots = []
 
 

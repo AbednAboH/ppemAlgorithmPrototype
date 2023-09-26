@@ -1,15 +1,9 @@
-import random
-import threading
-
+from CodeBase.HelpingFunctions import *
+from CodeBase.Expectation_Maximization import algortithem
+from CodeBase.Federated_EM_Client import Partial_EM
 import numpy as np
-
-from HelpingFunctions import *
-from Expectation_Maximization import algortithem
-from Federated_EM_Client import Partial_EM
-import numpy as np
-from entropy_estimators import entropy, mi
-from Settings_Parameters import FEM, PERSESSION, MAXITER
-from sklearn.feature_selection import mutual_info_regression
+from CodeBase.entropy_estimators import mi
+from CodeBase.Settings_Parameters import FEM, PERSESSION, MAXITER
 
 import concurrent.futures
 class Server(algortithem):

@@ -1,7 +1,5 @@
-import numpy as np
-
-from HelpingFunctions import *
-from Expectation_Maximization import algortithem
+from CodeBase.HelpingFunctions import *
+from CodeBase.Expectation_Maximization import algortithem
 
 
 class Partial_EM(algortithem):

@@ -1,9 +1,8 @@
-from PrivacyPreserving_EM_Client import Partial_PPEM
-from Settings_Parameters import PERSESSION, MAXITER
-from TenSEAL_encryption_unit import encryption
-from HelpingFunctions import writeData, colored_plot
-from Federated_EM_Server import Server
-from PrivacyPreserving_EM_Client import Partial_PPEM
+from CodeBase.Settings_Parameters import PERSESSION, MAXITER
+from CodeBase.TenSEAL_encryption_unit import encryption
+from CodeBase.HelpingFunctions import writeData, colored_plot
+from CodeBase.Federated_EM_Server import Server
+from CodeBase.PrivacyPreserving_EM_Client import Partial_PPEM
 import numpy as np
 
 class PPserver(Server):
@@ -89,5 +88,3 @@ def PP_EM_Tests():
                     except Exception as e:
                         print(e.args)
                         continue
-
-# PP_EM_Tests()

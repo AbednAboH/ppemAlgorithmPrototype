@@ -1,10 +1,4 @@
-from HelpingFunctions import compare_both_algorithms, compare_csv_files_by_nk
-from PrivacyPreserving_EM_Server import PP_EM_Tests
-from Federated_EM_Server import testsFEM
-
-
 # test Federated EM on multiple variables
-from Settings_Parameters import accepted_values
 
 # print("-"*10+"\n Initiating Federated EM Tests\n"+"-"*10)
 #
