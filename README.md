@@ -1,11 +1,11 @@
 # Privacy Preserving Expectation maximization (PPEM) On Gaussian Mixture models
-    This is an implementation of our proposal of a new protocol that guarantees privacy to a certain degree
-    Supervised by Prof.Adi Akvia
-    Proposed by Abed Elrahman abo hussien and Michael Rodel
+This is an implementation of our proposal of a new protocol that guarantees privacy to a certain degree
+Supervised by Prof.Adi Akvia
+Proposed by Abed Elrahman abo hussien and Michael Rodel
 
-    Some background on the project can be found ![here](Background.md).
+Some background on the project can be found ![here](Background.md).
 
-    Our proposal can be found ![here](our_approach.md).
+Our proposal can be found ![here](our_approach.md).
 
 
 # Tests and how to navigate them
