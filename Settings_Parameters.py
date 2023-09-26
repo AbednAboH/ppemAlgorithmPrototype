@@ -18,7 +18,7 @@ FEM_directory = "Results/FEM/"
 FEM_Preproccession_directory = "Results/FEM_Preprocessing/"
 
 # Scrypt lines
-CHOSEN_ALGO="1.Compare both algorithms\n2.PPEM\n3.Federated EM\n"
+CHOSEN_ALGO="1.Run on both algorithms\n2.PPEM\n3.Federated EM\n"
 DATASET_SELECTION = "1.use UCL's Parkinson DataBase that consists of 31 participants (23 infected) with 23 features\n2.custom parameters with randomized data\n3.enter a dataset with '.data'/'.csv'\n"
 CLUSTERS = "Enter the number of clusters you would like the data to be split to (2,100)\n"
 ITERATIONS = "Enter the maximum iterations that you want for the algorithm (100,10000):\n"

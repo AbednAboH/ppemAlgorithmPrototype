@@ -102,13 +102,8 @@
         meaning that in the server the parameters ,Pi,mean,covariance were not known thus the final visual result that we got was the original arbitrary means and covariances , not the actual results 
     2. which led us to understand another issue irrelevant to the previous point is that we shouldn't have tried calcualting the new covariances according to the new means in the m step ! 
 
-Here we show off one of the many results using the randomly generated data :
 
-![](Results/PPEM/PPEM_n600_k3_c6.png)
 
-this is an example of how the algorithm visually works , not the same one as before :
-
-![](Results/7200.gif)
 
 # 14.7.23 
         One more improvement on the convergence of the em algorithm : 
@@ -183,3 +178,5 @@ this is an example of how the algorithm visually works , not the same one as bef
         we are waiting for both algorithms to finish thier run to get all the results in which we plan to add to the article tommorow
 # 21.9.23 
         we finished writing the full article , now we are ready to submit all the material. yet the presentation needs some work 
+# 26.9.23
+        ![img_4.png](img_4.png)

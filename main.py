@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 writeData(pi, means, covariances, log_likelihoods, n_input, ticks, time_line,
                           directory+f"Parkingsons/Parkingsons_c{clients}")
 
-                colored_plot(n_input,means,covariances,pi,directory+f"Parkingsons/Parkingsons_c{clients}_points")
+                colored_plot(n_input,means,covariances,pi)
 
         elif dataset==2:
             n=int(input("Enter the number of data points (100,10000):"))

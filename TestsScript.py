@@ -27,8 +27,8 @@ from Settings_Parameters import accepted_values
 #
 # # create log likelyhood plot for all input in those files
 # print("plotting loge likleyhood for all results")
-compare_csv_files_by_nk('Results/FEM/Charts', 'Results/PPEM/Charts',
-                        'Results/LikleyhoodComparisions')
+# compare_csv_files_by_nk('Results/FEM/Charts', 'Results/PPEM/Charts',
+#                         'Results/LikleyhoodComparisions')
 
 # compare both algorithms on the parkingsons data
 
