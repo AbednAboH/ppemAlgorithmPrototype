@@ -81,6 +81,9 @@ Our proposal can be found ![here](our_approach.md).
        
        Then: 
 	 follow the instructions given in the console
+# Index
+    To navigate through all the data ,test results and benchmarks check the 'Index.md' file
+
 
 # Requirements
    found in the requirements.txt
